@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  isBot     Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  wallet          Wallet?
+  items           Item[]        @relation("UserItems")
+  sellingAuctions Auction[]     @relation("SellerAuctions")
+  winningAuctions Auction[]     @relation("HighestBidderAuctions")
+  bids            Bid[]
+  ledgerEntries   LedgerEntry[]
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledgerEntries LedgerEntry[]
+}
+
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  walletId    String
+  userId      String
+  amount      Int
+  type        String
+  description String
+  auctionId   String?
+  createdAt   DateTime @default(now())
+
+  wallet  Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction Auction? @relation(fields: [auctionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([auctionId])
+}
+
+model Item {
+  id              String   @id @default(cuid())
+  title           String
+  category        String
+  description     String
+  createdByUserId String
+  isSeeded        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  createdBy User      @relation("UserItems", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  auctions  Auction[]
+}
+
+model Auction {
+  id              String   @id @default(cuid())
+  itemId          String
+  sellerId        String
+  startingPrice   Int
+  currentPrice    Int
+  buyoutPrice     Int
+  highestBidderId String?
+  status          String   @default("ACTIVE")
+  endsAt          DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  item          Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  seller        User          @relation("SellerAuctions", fields: [sellerId], references: [id], onDelete: Cascade)
+  highestBidder User?         @relation("HighestBidderAuctions", fields: [highestBidderId], references: [id], onDelete: SetNull)
+  bids          Bid[]
+  ledgerEntries LedgerEntry[]
+
+  @@index([status, endsAt])
+  @@index([sellerId])
+}
+
+model Bid {
+  id        String   @id @default(cuid())
+  auctionId String
+  bidderId  String
+  amount    Int
+  createdAt DateTime @default(now())
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder  User    @relation(fields: [bidderId], references: [id], onDelete: Cascade)
+
+  @@index([auctionId, createdAt])
+  @@index([bidderId])
+}
