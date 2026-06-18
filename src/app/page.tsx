@@ -312,38 +312,59 @@ export default function Home() {
                 <button
                   key={auction.id}
                   onClick={() => setSelectedId(auction.id)}
-                  className={`rounded-lg border p-4 text-left transition ${
+                  className={`overflow-hidden rounded-lg border text-left transition ${
                     selectedAuction?.id === auction.id
                       ? "border-[#c99a2e] bg-[#fff9e8]"
                       : "border-black/10 bg-white hover:border-black/25"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a6a20]">
+                  <div className="relative aspect-[16/9] overflow-hidden bg-black/5">
+                    <img
+                      src={auctionImage(auction)}
+                      alt={`${auction.item.title} representative auction photo`}
+                      className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
+                      <span className="rounded bg-white/90 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a6a20]">
                         {auction.item.category}
-                      </p>
-                      <h3 className="mt-1 text-lg font-semibold">
-                        {auction.item.title}
-                      </h3>
+                      </span>
+                      <span className="rounded bg-black/55 px-2 py-1 text-xs font-semibold">
+                        {timeLeft(auction.endsAt)}
+                      </span>
                     </div>
-                    <span className="rounded bg-black/5 px-2 py-1 text-xs font-semibold">
-                      {timeLeft(auction.endsAt)}
-                    </span>
                   </div>
-                  <p className="mt-3 line-clamp-2 text-sm text-[#5f6f80]">
-                    {auction.item.description}
-                  </p>
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                    <Metric label="Current" value={formatCoins(auction.currentPrice)} />
-                    <Metric label="Buyout" value={formatCoins(auction.buyoutPrice)} />
+
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <h3 className="text-lg font-semibold">{auction.item.title}</h3>
+                      <span className="shrink-0 rounded-full bg-[#fff2c5] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#8a6a20]">
+                        {auction.highestBidder ? "Bid active" : "Fresh lot"}
+                      </span>
+                    </div>
+                    <p className="mt-3 line-clamp-2 text-sm text-[#5f6f80]">
+                      {auction.item.description}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[#5f6f80]">
+                      <span>{watcherCount(auction.id)} watching</span>
+                      <span>Est. {formatCoins(estimateValue(auction))}</span>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <Metric
+                        label="Current"
+                        value={formatCoins(auction.currentPrice)}
+                      />
+                      <Metric
+                        label="Buyout"
+                        value={formatCoins(auction.buyoutPrice)}
+                      />
+                    </div>
+                    <p className="mt-3 text-xs text-[#5f6f80]">
+                      Seller: {auction.seller.username}
+                      {auction.highestBidder
+                        ? ` | Leader: ${auction.highestBidder.username}`
+                        : ""}
+                    </p>
                   </div>
-                  <p className="mt-3 text-xs text-[#5f6f80]">
-                    Seller: {auction.seller.username}
-                    {auction.highestBidder
-                      ? ` | Leader: ${auction.highestBidder.username}`
-                      : ""}
-                  </p>
                 </button>
               ))}
             </div>
@@ -354,7 +375,22 @@ export default function Home() {
               <h2 className="text-xl font-semibold">Auction Detail</h2>
               {selectedAuction ? (
                 <div className="mt-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8a6a20]">
+                  <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-black/5">
+                    <img
+                      src={auctionImage(selectedAuction)}
+                      alt={`${selectedAuction.item.title} representative auction photo`}
+                      className="h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/75 to-transparent p-3 text-white">
+                      <span className="rounded bg-white/90 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a6a20]">
+                        {selectedAuction.item.category}
+                      </span>
+                      <span className="rounded bg-[#c99a2e] px-2 py-1 text-xs font-bold text-white">
+                        {watcherCount(selectedAuction.id)} watching
+                      </span>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[#8a6a20]">
                     {selectedAuction.item.category}
                   </p>
                   <h3 className="mt-1 text-2xl font-semibold">
@@ -363,6 +399,10 @@ export default function Home() {
                   <p className="mt-2 text-sm leading-6 text-[#5f6f80]">
                     {selectedAuction.item.description}
                   </p>
+                  <div className="mt-3 rounded-md bg-[#fff7df] px-3 py-2 text-sm font-semibold text-[#6f5418]">
+                    Estimated value {formatCoins(estimateValue(selectedAuction))}.
+                    Buyout saves {formatCoins(estimateValue(selectedAuction) - selectedAuction.buyoutPrice)} versus estimate.
+                  </div>
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <Metric
                       label="Current bid"
@@ -537,4 +577,31 @@ function timeLeft(endsAt: string) {
   const seconds = Math.floor((diff % 60_000) / 1_000);
 
   return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
+}
+
+function auctionImage(auction: Auction) {
+  const title = auction.item.title.toLowerCase();
+
+  if (title.includes("villa") || title.includes("penthouse")) {
+    return "/auction-assets/house.png";
+  }
+
+  if (title.includes("yacht") || auction.item.category === "boat") {
+    return "/auction-assets/boat.png";
+  }
+
+  if (title.includes("car") || auction.item.category === "car") {
+    return "/auction-assets/car.png";
+  }
+
+  return "/auction-assets/asset.png";
+}
+
+function watcherCount(id: string) {
+  const hash = Array.from(id).reduce((total, char) => total + char.charCodeAt(0), 0);
+  return 12 + (hash % 28);
+}
+
+function estimateValue(auction: Auction) {
+  return Math.round((auction.buyoutPrice * 1.18) / 1_000) * 1_000;
 }
