@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createOrResumeUser } from "@/services/users";
-import { setSessionUserId } from "@/lib/session";
+import { clearSessionUserId, setSessionUserId } from "@/lib/session";
 
 export async function POST(request: Request) {
   try {
@@ -17,4 +17,9 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+}
+
+export async function DELETE() {
+  await clearSessionUserId();
+  return NextResponse.json({ ok: true });
 }

@@ -110,6 +110,32 @@ export default function Home() {
     }
   }
 
+  async function signOut() {
+    setIsBusy(true);
+    setNotice("");
+
+    try {
+      const response = await fetch("/api/session", {
+        method: "DELETE"
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error ?? "Unable to sign out");
+      }
+
+      setUser(null);
+      setWallet(null);
+      setLedger([]);
+      setNotice("Signed out.");
+      await refresh();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Something went wrong");
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
   async function submitListing(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
@@ -231,6 +257,13 @@ export default function Home() {
                   {formatCoins(wallet.balance)}
                   <span className="ml-2 text-base text-[#8a6a20]">coins</span>
                 </p>
+                <button
+                  onClick={signOut}
+                  disabled={isBusy}
+                  className="mt-3 rounded-md border border-black/15 px-3 py-2 text-sm font-semibold text-[#151515] disabled:opacity-50"
+                >
+                  Sign out
+                </button>
               </div>
             ) : (
               <form onSubmit={submitUsername} className="flex gap-2">

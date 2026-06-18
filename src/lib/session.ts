@@ -16,3 +16,8 @@ export async function setSessionUserId(userId: string) {
     maxAge: 60 * 60 * 24 * 30
   });
 }
+
+export async function clearSessionUserId() {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE);
+}
