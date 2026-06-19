@@ -296,7 +296,7 @@ export default function Home() {
               <div>
                 <h2 className="text-xl font-semibold">Live Auctions</h2>
                 <p className="text-sm text-[#5f6f80]">
-                  Seeded bot listings refresh every few seconds.
+                  Rotating limited lots. If one closes, a new bot auction takes its place.
                 </p>
               </div>
               <button

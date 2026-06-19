@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { AuctionServiceError } from "@/lib/auction-errors";
 import { getSessionUserId } from "@/lib/session";
-import { closeExpiredAuctions, createAuction, listActiveAuctions } from "@/services/auctions";
+import {
+  closeExpiredAuctions,
+  createAuction,
+  ensureBotAuctionPool,
+  listActiveAuctions
+} from "@/services/auctions";
 
 export async function GET() {
   await closeExpiredAuctions();
+  await ensureBotAuctionPool();
   const auctions = await listActiveAuctions();
   return NextResponse.json({ auctions });
 }

@@ -15,6 +15,42 @@ export type CreateAuctionInput = {
 };
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
+const BOT_STARTING_BALANCE = 1_000_000;
+const BOT_USERNAMES = [
+  "VelocityVault",
+  "HarborHouse",
+  "ApexImports",
+  "LuxeLiquidators",
+  "SummitReserve",
+  "MarinaPrime",
+  "EstateCircuit",
+  "NightfallBids"
+];
+
+const BOT_AUCTION_TEMPLATES = [
+  ["2026 Carbon Apex R", "car", "A black carbon track special with aero upgrades.", 190_000, 360_000],
+  ["V12 Heritage Coupe", "car", "A collector-grade grand tourer with concours appeal.", 240_000, 520_000],
+  ["Electric Hyper Saloon", "car", "A silent luxury rocket with rare launch trim.", 165_000, 390_000],
+  ["Rally Legend RS", "car", "A limited gravel-spec icon with factory upgrades.", 130_000, 285_000],
+  ["Midnight Sprint GT", "car", "A stealth-finished street car tuned for weekend escapes.", 155_000, 330_000],
+  ["Coastal Glass Villa", "house", "A waterfront estate with dock access and sunset frontage.", 520_000, 950_000],
+  ["Cliffside Modern Retreat", "house", "A cantilevered view property above a private cove.", 610_000, 1_050_000],
+  ["Downtown Sky Penthouse", "house", "A skyline residence with private elevator access.", 430_000, 875_000],
+  ["Desert Courtyard Estate", "house", "A quiet luxury compound built around a private pool.", 390_000, 740_000],
+  ["Marina Owner's Loft", "house", "A harbor-facing loft with yacht club proximity.", 360_000, 690_000],
+  ["Solaris 48 Sport Yacht", "boat", "A twin-engine sport yacht with upgraded navigation systems.", 260_000, 620_000],
+  ["Azure 62 Flybridge", "boat", "A long-range flybridge cruiser with entertainment deck.", 410_000, 880_000],
+  ["Blackline Tender X", "boat", "A fast luxury tender with carbon trim and shallow draft.", 145_000, 310_000],
+  ["Harborline Weekender", "boat", "A polished day cruiser ready for coastal runs.", 180_000, 420_000],
+  ["Aurelia Catamaran Share", "boat", "A premium fractional stake in a luxury catamaran.", 220_000, 510_000],
+  ["Private Hangar Lease", "asset", "A premium long-term lease at a private airfield.", 210_000, 500_000],
+  ["Founder Club Membership", "asset", "A transferable membership with exclusive venue access.", 95_000, 240_000],
+  ["Historic Garage Unit", "asset", "A secure collector garage in a high-demand district.", 175_000, 380_000],
+  ["Track Day License Pack", "asset", "A bundled license package for private circuit access.", 120_000, 275_000],
+  ["Marina Berth Contract", "asset", "A premium berth allocation in a sold-out marina.", 160_000, 360_000],
+  ["Airport Lounge Charter Credit", "asset", "A flexible charter credit package for private travel.", 140_000, 320_000],
+  ["Collector Storage Vault", "asset", "A climate-controlled vault contract for rare assets.", 115_000, 260_000]
+] satisfies Array<[string, string, string, number, number]>;
 
 export async function createAuction(userId: string, input: CreateAuctionInput) {
   assertPositiveCoins(input.startingPrice, "Starting price");
@@ -63,6 +99,68 @@ export async function listActiveAuctions() {
     orderBy: [{ endsAt: "asc" }, { updatedAt: "desc" }],
     include: auctionInclude
   });
+}
+
+export async function ensureBotAuctionPool({
+  targetActive = 8
+}: { targetActive?: number } = {}) {
+  const activeBotAuctions = await prisma.auction.findMany({
+    where: {
+      status: "ACTIVE",
+      seller: {
+        isBot: true
+      }
+    },
+    include: {
+      item: true
+    },
+    orderBy: {
+      createdAt: "desc"
+    }
+  });
+
+  const missingCount = Math.max(0, targetActive - activeBotAuctions.length);
+
+  if (missingCount === 0) {
+    return;
+  }
+
+  const bots = await ensureBotUsers();
+  const activeTitles = new Set(
+    activeBotAuctions.map((auction) => auction.item.title)
+  );
+  const templates = shuffledTemplates().filter(
+    ([title]) => !activeTitles.has(title)
+  );
+
+  for (let index = 0; index < missingCount; index += 1) {
+    const template = templates[index % templates.length];
+    const [title, category, description, startingPrice, buyoutPrice] = template;
+    const seller = bots[index % bots.length];
+
+    await prisma.$transaction(async (tx) => {
+      const item = await tx.item.create({
+        data: {
+          title,
+          category,
+          description,
+          createdByUserId: seller.id,
+          isSeeded: true
+        }
+      });
+
+      await tx.auction.create({
+        data: {
+          itemId: item.id,
+          sellerId: seller.id,
+          startingPrice,
+          currentPrice: startingPrice,
+          buyoutPrice,
+          endsAt: new Date(Date.now() + ONE_HOUR_MS)
+        }
+      });
+    });
+  }
 }
 
 export async function getAuction(id: string) {
@@ -340,3 +438,43 @@ const auctionInclude = {
   seller: true,
   highestBidder: true
 } satisfies Prisma.AuctionInclude;
+
+async function ensureBotUsers() {
+  const bots = [];
+
+  for (const username of BOT_USERNAMES) {
+    const user = await prisma.user.upsert({
+      where: { username },
+      update: { isBot: true },
+      create: {
+        username,
+        isBot: true,
+        wallet: {
+          create: {
+            balance: BOT_STARTING_BALANCE
+          }
+        }
+      },
+      include: {
+        wallet: true
+      }
+    });
+
+    if (!user.wallet) {
+      await prisma.wallet.create({
+        data: {
+          userId: user.id,
+          balance: BOT_STARTING_BALANCE
+        }
+      });
+    }
+
+    bots.push(user);
+  }
+
+  return bots;
+}
+
+function shuffledTemplates() {
+  return [...BOT_AUCTION_TEMPLATES].sort(() => Math.random() - 0.5);
+}

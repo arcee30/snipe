@@ -5,6 +5,7 @@ import {
   buyOutAuction,
   closeExpiredAuctions,
   createAuction,
+  ensureBotAuctionPool,
   placeBid
 } from "@/services/auctions";
 
@@ -143,5 +144,24 @@ describe("auction services", () => {
     await expect(placeBid(bidder.user.id, auction.id, 200_000)).rejects.toThrow(
       "Bid must be higher than the current price"
     );
+  });
+
+  it("replenishes an empty market with random active bot auctions", async () => {
+    await ensureBotAuctionPool({ targetActive: 6 });
+
+    const auctions = await prisma.auction.findMany({
+      where: { status: "ACTIVE" },
+      include: { item: true, seller: true }
+    });
+
+    expect(auctions).toHaveLength(6);
+    expect(new Set(auctions.map((auction) => auction.item.title)).size).toBe(6);
+    expect(auctions.every((auction) => auction.seller.isBot)).toBe(true);
+    expect(
+      auctions.every((auction) =>
+        ["asset", "boat", "car", "house"].includes(auction.item.category)
+      )
+    ).toBe(true);
+    expect(auctions.every((auction) => auction.endsAt > new Date())).toBe(true);
   });
 });
