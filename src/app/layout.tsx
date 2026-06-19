@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Auction House",
-  description: "A fake-money auction marketplace MVP"
+  title: "Snipe",
+  description: "A fake-money auction marketplace for limited luxury lots"
 };
 
 export default function RootLayout({

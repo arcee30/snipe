@@ -234,20 +234,63 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen px-5 py-6 text-[#151515] md:px-8">
+    <main id="top" className="min-h-screen px-5 py-6 text-[#151515] md:px-8">
       <div className="mx-auto flex max-w-7xl flex-col gap-5">
+        <nav className="sticky top-0 z-20 -mx-5 border-b border-black/10 bg-[#f5f3ee]/90 px-5 py-3 backdrop-blur md:-mx-8 md:px-8">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <a href="#top" className="flex items-center gap-3">
+              <LogoMark />
+              <span className="text-2xl font-semibold tracking-tight">Snipe</span>
+            </a>
+            <div className="flex gap-2 overflow-x-auto text-sm font-semibold text-[#5f6f80]">
+              <a
+                href="#auctions"
+                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
+              >
+                Auctions
+              </a>
+              <a
+                href="#detail"
+                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
+              >
+                Details
+              </a>
+              <a
+                href="#sell"
+                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
+              >
+                Sell
+              </a>
+              <a
+                href="#wallet"
+                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
+              >
+                Wallet
+              </a>
+              <a
+                href="#history"
+                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
+              >
+                History
+              </a>
+            </div>
+          </div>
+        </nav>
+
         <header className="flex flex-col gap-4 border-b border-black/10 pb-5 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-              Auction House
+              Snipe
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[#5f6f80] md:text-base">
-              Bid on seeded luxury assets, create one-hour listings, and manage a
-              fake 1,000,000 coin wallet.
+              Limited auctions, sharp timing, and a rotating market of luxury lots.
             </p>
           </div>
 
-          <section className="min-w-72 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm">
+          <section
+            id="wallet"
+            className="scroll-mt-24 min-w-72 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm"
+          >
             {user && wallet ? (
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5f6f80]">
@@ -291,7 +334,10 @@ export default function Home() {
         ) : null}
 
         <div className="grid gap-5 lg:grid-cols-[1fr_390px]">
-          <section className="rounded-lg border border-black/10 bg-white/70 p-4 shadow-sm">
+          <section
+            id="auctions"
+            className="scroll-mt-24 rounded-lg border border-black/10 bg-white/70 p-4 shadow-sm"
+          >
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold">Live Auctions</h2>
@@ -371,7 +417,10 @@ export default function Home() {
           </section>
 
           <aside className="flex flex-col gap-5">
-            <section className="rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm">
+            <section
+              id="detail"
+              className="scroll-mt-24 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm"
+            >
               <h2 className="text-xl font-semibold">Auction Detail</h2>
               {selectedAuction ? (
                 <div className="mt-4">
@@ -452,7 +501,10 @@ export default function Home() {
               )}
             </section>
 
-            <section className="rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm">
+            <section
+              id="sell"
+              className="scroll-mt-24 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm"
+            >
               <h2 className="text-xl font-semibold">Create Listing</h2>
               <form onSubmit={submitListing} className="mt-4 grid gap-3">
                 <input
@@ -512,7 +564,10 @@ export default function Home() {
               </form>
             </section>
 
-            <section className="rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm">
+            <section
+              id="history"
+              className="scroll-mt-24 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm"
+            >
               <h2 className="text-xl font-semibold">Transaction History</h2>
               <div className="mt-3 max-h-72 space-y-2 overflow-auto">
                 {ledger.length > 0 ? (
@@ -559,6 +614,38 @@ function Metric({ label, value }: { label: string; value: string }) {
       </p>
       <p className="mt-1 truncate text-sm font-semibold">{value}</p>
     </div>
+  );
+}
+
+function LogoMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 64 64"
+      className="h-10 w-10 shrink-0"
+      fill="none"
+    >
+      <rect width="64" height="64" rx="16" fill="#151515" />
+      <circle cx="32" cy="32" r="21" stroke="#c99a2e" strokeWidth="4" />
+      <path
+        d="M32 8v8M32 48v8M8 32h8M48 32h8"
+        stroke="#f7f4ee"
+        strokeLinecap="round"
+        strokeWidth="3"
+      />
+      <path
+        d="M20 39c5 6 18 5 22-3 4-9-8-11-14-8-5 2-6 8 0 10 6 3 15 0 18-7"
+        stroke="#f7f4ee"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="4"
+      />
+      <path
+        d="M25 38 44 19l3 3-19 19-8 3 5-6Z"
+        fill="#c99a2e"
+      />
+      <circle cx="31" cy="32" r="3" fill="#151515" />
+    </svg>
   );
 }
 
