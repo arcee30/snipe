@@ -6,7 +6,7 @@ import { useSession } from "@/hooks/useSession";
 import { formatCoins } from "@/lib/auction-ui";
 import type { LedgerEntry } from "@/lib/auction-ui";
 
-const creditPacks = [50_000, 100_000, 250_000, 500_000];
+const creditPacks = [100_000, 500_000, 1_000_000, 2_500_000, 5_000_000];
 
 export default function WalletPage() {
   const { user, wallet, refreshSession } = useSession();

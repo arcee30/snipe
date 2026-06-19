@@ -65,7 +65,23 @@ export function auctionImage(auction: Auction) {
 
   const title = auction.item.title.toLowerCase();
 
-  if (title.includes("villa") || title.includes("penthouse")) {
+  if (auction.item.category === "helicopter") {
+    return "/auction-assets/generated/helicopter-rooftop.png";
+  }
+
+  if (auction.item.category === "submarine") {
+    return "/auction-assets/generated/private-submarine.png";
+  }
+
+  if (auction.item.category === "aircraft") {
+    return "/auction-assets/generated/private-jet-hangar.png";
+  }
+
+  if (auction.item.category === "building" || title.includes("penthouse")) {
+    return "/auction-assets/generated/skyscraper-penthouse.png";
+  }
+
+  if (title.includes("villa")) {
     return "/auction-assets/house.png";
   }
 
@@ -74,7 +90,7 @@ export function auctionImage(auction: Auction) {
   }
 
   if (title.includes("car") || auction.item.category === "car") {
-    return "/auction-assets/car.png";
+    return "/auction-assets/generated/hypercar-red-showroom.png";
   }
 
   return "/auction-assets/asset.png";

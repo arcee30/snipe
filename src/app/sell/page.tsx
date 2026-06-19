@@ -5,7 +5,16 @@ import { PageFrame } from "@/components/PageFrame";
 import { useSession } from "@/hooks/useSession";
 import { formatCoins } from "@/lib/auction-ui";
 
-const categories = ["car", "house", "boat", "asset"];
+const categories = [
+  "car",
+  "house",
+  "boat",
+  "aircraft",
+  "helicopter",
+  "submarine",
+  "building",
+  "asset"
+];
 
 export default function SellPage() {
   const { user } = useSession();
@@ -16,8 +25,8 @@ export default function SellPage() {
     title: "",
     category: "car",
     description: "",
-    startingPrice: "100000",
-    buyoutPrice: "250000",
+    startingPrice: "250000",
+    buyoutPrice: "750000",
     imageUrl: ""
   });
 
@@ -75,8 +84,8 @@ export default function SellPage() {
         title: "",
         category: "car",
         description: "",
-        startingPrice: "100000",
-        buyoutPrice: "250000",
+        startingPrice: "250000",
+        buyoutPrice: "750000",
         imageUrl: ""
       });
       setNotice("Listing created. It is live for one hour.");

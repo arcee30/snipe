@@ -159,9 +159,19 @@ describe("auction services", () => {
     expect(auctions.every((auction) => auction.seller.isBot)).toBe(true);
     expect(
       auctions.every((auction) =>
-        ["asset", "boat", "car", "house"].includes(auction.item.category)
+        [
+          "aircraft",
+          "asset",
+          "boat",
+          "building",
+          "car",
+          "helicopter",
+          "house",
+          "submarine"
+        ].includes(auction.item.category)
       )
     ).toBe(true);
+    expect(auctions.every((auction) => auction.item.imageUrl)).toBe(true);
     expect(auctions.every((auction) => auction.endsAt > new Date())).toBe(true);
   });
 });

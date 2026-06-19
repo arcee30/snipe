@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
-const ALLOWED_AMOUNTS = new Set([50_000, 100_000, 250_000, 500_000]);
+const ALLOWED_AMOUNTS = new Set([100_000, 500_000, 1_000_000, 2_500_000, 5_000_000]);
 
 export async function POST(request: Request) {
   const userId = await getSessionUserId();

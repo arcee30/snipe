@@ -28,30 +28,241 @@ const BOT_USERNAMES = [
   "NightfallBids"
 ];
 
+type BotAuctionTemplate = {
+  title: string;
+  category: string;
+  description: string;
+  startingPrice: number;
+  buyoutPrice: number;
+  imageUrl: string;
+};
+
+const IMAGE = {
+  blackRacecar: "/auction-assets/car.png",
+  redHypercar: "/auction-assets/generated/hypercar-red-showroom.png",
+  classicCoupe: "/auction-assets/generated/classic-silver-coupe.png",
+  yachtMarina: "/auction-assets/boat.png",
+  racingYacht: "/auction-assets/generated/offshore-racing-yacht.png",
+  glassVilla: "/auction-assets/house.png",
+  islandVilla: "/auction-assets/generated/island-glass-villa.png",
+  penthouse: "/auction-assets/generated/skyscraper-penthouse.png",
+  jet: "/auction-assets/generated/private-jet-hangar.png",
+  helicopter: "/auction-assets/generated/helicopter-rooftop.png",
+  submarine: "/auction-assets/generated/private-submarine.png",
+  collectorVault: "/auction-assets/generated/collector-vault.png",
+  asset: "/auction-assets/asset.png"
+} as const;
+
 const BOT_AUCTION_TEMPLATES = [
-  ["2026 Carbon Apex R", "car", "A black carbon track special with aero upgrades.", 190_000, 360_000],
-  ["V12 Heritage Coupe", "car", "A collector-grade grand tourer with concours appeal.", 240_000, 520_000],
-  ["Electric Hyper Saloon", "car", "A silent luxury rocket with rare launch trim.", 165_000, 390_000],
-  ["Rally Legend RS", "car", "A limited gravel-spec icon with factory upgrades.", 130_000, 285_000],
-  ["Midnight Sprint GT", "car", "A stealth-finished street car tuned for weekend escapes.", 155_000, 330_000],
-  ["Coastal Glass Villa", "house", "A waterfront estate with dock access and sunset frontage.", 520_000, 950_000],
-  ["Cliffside Modern Retreat", "house", "A cantilevered view property above a private cove.", 610_000, 1_050_000],
-  ["Downtown Sky Penthouse", "house", "A skyline residence with private elevator access.", 430_000, 875_000],
-  ["Desert Courtyard Estate", "house", "A quiet luxury compound built around a private pool.", 390_000, 740_000],
-  ["Marina Owner's Loft", "house", "A harbor-facing loft with yacht club proximity.", 360_000, 690_000],
-  ["Solaris 48 Sport Yacht", "boat", "A twin-engine sport yacht with upgraded navigation systems.", 260_000, 620_000],
-  ["Azure 62 Flybridge", "boat", "A long-range flybridge cruiser with entertainment deck.", 410_000, 880_000],
-  ["Blackline Tender X", "boat", "A fast luxury tender with carbon trim and shallow draft.", 145_000, 310_000],
-  ["Harborline Weekender", "boat", "A polished day cruiser ready for coastal runs.", 180_000, 420_000],
-  ["Aurelia Catamaran Share", "boat", "A premium fractional stake in a luxury catamaran.", 220_000, 510_000],
-  ["Private Hangar Lease", "asset", "A premium long-term lease at a private airfield.", 210_000, 500_000],
-  ["Founder Club Membership", "asset", "A transferable membership with exclusive venue access.", 95_000, 240_000],
-  ["Historic Garage Unit", "asset", "A secure collector garage in a high-demand district.", 175_000, 380_000],
-  ["Track Day License Pack", "asset", "A bundled license package for private circuit access.", 120_000, 275_000],
-  ["Marina Berth Contract", "asset", "A premium berth allocation in a sold-out marina.", 160_000, 360_000],
-  ["Airport Lounge Charter Credit", "asset", "A flexible charter credit package for private travel.", 140_000, 320_000],
-  ["Collector Storage Vault", "asset", "A climate-controlled vault contract for rare assets.", 115_000, 260_000]
-] satisfies Array<[string, string, string, number, number]>;
+  {
+    title: "2026 Carbon Apex R",
+    category: "car",
+    description: "A black carbon track special with aero upgrades.",
+    startingPrice: 190_000,
+    buyoutPrice: 360_000,
+    imageUrl: IMAGE.blackRacecar
+  },
+  {
+    title: "Rosso Veloce Hypercar",
+    category: "car",
+    description: "A red showroom hypercar with launch trim and collector mileage.",
+    startingPrice: 820_000,
+    buyoutPrice: 1_650_000,
+    imageUrl: IMAGE.redHypercar
+  },
+  {
+    title: "V12 Heritage Coupe",
+    category: "car",
+    description: "A collector-grade silver grand tourer with concours appeal.",
+    startingPrice: 440_000,
+    buyoutPrice: 980_000,
+    imageUrl: IMAGE.classicCoupe
+  },
+  {
+    title: "Electric Hyper Saloon",
+    category: "car",
+    description: "A silent luxury rocket with rare launch trim.",
+    startingPrice: 260_000,
+    buyoutPrice: 540_000,
+    imageUrl: IMAGE.redHypercar
+  },
+  {
+    title: "Rally Legend RS",
+    category: "car",
+    description: "A limited gravel-spec icon with factory upgrades.",
+    startingPrice: 130_000,
+    buyoutPrice: 285_000,
+    imageUrl: IMAGE.blackRacecar
+  },
+  {
+    title: "Midnight Sprint GT",
+    category: "car",
+    description: "A stealth-finished street car tuned for weekend escapes.",
+    startingPrice: 155_000,
+    buyoutPrice: 330_000,
+    imageUrl: IMAGE.classicCoupe
+  },
+  {
+    title: "Coastal Glass Villa",
+    category: "house",
+    description: "A waterfront estate with dock access and sunset frontage.",
+    startingPrice: 620_000,
+    buyoutPrice: 1_250_000,
+    imageUrl: IMAGE.glassVilla
+  },
+  {
+    title: "Private Island Glass Estate",
+    category: "house",
+    description: "A tropical shoreline compound with infinity pool and private dock.",
+    startingPrice: 2_400_000,
+    buyoutPrice: 4_850_000,
+    imageUrl: IMAGE.islandVilla
+  },
+  {
+    title: "Cliffside Modern Retreat",
+    category: "house",
+    description: "A cantilevered view property above a private cove.",
+    startingPrice: 810_000,
+    buyoutPrice: 1_650_000,
+    imageUrl: IMAGE.islandVilla
+  },
+  {
+    title: "Downtown Sky Penthouse",
+    category: "building",
+    description: "A full-floor glass penthouse with private terrace and skyline views.",
+    startingPrice: 1_350_000,
+    buyoutPrice: 2_900_000,
+    imageUrl: IMAGE.penthouse
+  },
+  {
+    title: "Boutique Tower Equity Slice",
+    category: "building",
+    description: "A premium minority stake in a trophy mixed-use tower.",
+    startingPrice: 2_100_000,
+    buyoutPrice: 4_500_000,
+    imageUrl: IMAGE.penthouse
+  },
+  {
+    title: "Desert Courtyard Estate",
+    category: "house",
+    description: "A quiet luxury compound built around a private pool.",
+    startingPrice: 490_000,
+    buyoutPrice: 940_000,
+    imageUrl: IMAGE.glassVilla
+  },
+  {
+    title: "Solaris 48 Sport Yacht",
+    category: "boat",
+    description: "A twin-engine sport yacht with upgraded navigation systems.",
+    startingPrice: 260_000,
+    buyoutPrice: 620_000,
+    imageUrl: IMAGE.yachtMarina
+  },
+  {
+    title: "Azure 62 Flybridge",
+    category: "boat",
+    description: "A long-range flybridge cruiser with entertainment deck.",
+    startingPrice: 610_000,
+    buyoutPrice: 1_280_000,
+    imageUrl: IMAGE.yachtMarina
+  },
+  {
+    title: "Bluewater Offshore 88",
+    category: "boat",
+    description: "A fast offshore yacht built for high-speed coastal runs.",
+    startingPrice: 920_000,
+    buyoutPrice: 1_950_000,
+    imageUrl: IMAGE.racingYacht
+  },
+  {
+    title: "Aurelia Catamaran Share",
+    category: "boat",
+    description: "A premium fractional stake in a luxury catamaran.",
+    startingPrice: 220_000,
+    buyoutPrice: 510_000,
+    imageUrl: IMAGE.yachtMarina
+  },
+  {
+    title: "Rooftop Executive Helicopter",
+    category: "helicopter",
+    description: "A private twin-engine helicopter staged for city-to-resort transfers.",
+    startingPrice: 780_000,
+    buyoutPrice: 1_750_000,
+    imageUrl: IMAGE.helicopter
+  },
+  {
+    title: "Nightfall VIP Rotorcraft",
+    category: "helicopter",
+    description: "A matte black charter-ready helicopter with executive cabin fitout.",
+    startingPrice: 1_050_000,
+    buyoutPrice: 2_350_000,
+    imageUrl: IMAGE.helicopter
+  },
+  {
+    title: "Long-Range Private Jet",
+    category: "aircraft",
+    description: "A hangared intercontinental jet with premium cabin configuration.",
+    startingPrice: 2_250_000,
+    buyoutPrice: 5_000_000,
+    imageUrl: IMAGE.jet
+  },
+  {
+    title: "Private Hangar Lease",
+    category: "aircraft",
+    description: "A premium long-term lease at a private airfield.",
+    startingPrice: 310_000,
+    buyoutPrice: 725_000,
+    imageUrl: IMAGE.jet
+  },
+  {
+    title: "Marina Submersible One",
+    category: "submarine",
+    description: "A compact private submersible for rare coastal exploration.",
+    startingPrice: 1_450_000,
+    buyoutPrice: 3_200_000,
+    imageUrl: IMAGE.submarine
+  },
+  {
+    title: "Abyssal Explorer Share",
+    category: "submarine",
+    description: "A fractional stake in a luxury submersible expedition platform.",
+    startingPrice: 980_000,
+    buyoutPrice: 2_150_000,
+    imageUrl: IMAGE.submarine
+  },
+  {
+    title: "Collector Storage Vault",
+    category: "asset",
+    description: "A climate-controlled vault contract for rare cars and art.",
+    startingPrice: 380_000,
+    buyoutPrice: 860_000,
+    imageUrl: IMAGE.collectorVault
+  },
+  {
+    title: "Historic Garage Unit",
+    category: "asset",
+    description: "A secure collector garage in a high-demand district.",
+    startingPrice: 225_000,
+    buyoutPrice: 480_000,
+    imageUrl: IMAGE.collectorVault
+  },
+  {
+    title: "Founder Club Membership",
+    category: "asset",
+    description: "A transferable membership with exclusive venue access.",
+    startingPrice: 95_000,
+    buyoutPrice: 240_000,
+    imageUrl: IMAGE.asset
+  },
+  {
+    title: "Marina Berth Contract",
+    category: "asset",
+    description: "A premium berth allocation in a sold-out marina.",
+    startingPrice: 210_000,
+    buyoutPrice: 460_000,
+    imageUrl: IMAGE.yachtMarina
+  }
+] satisfies BotAuctionTemplate[];
 
 export async function createAuction(userId: string, input: CreateAuctionInput) {
   assertPositiveCoins(input.startingPrice, "Starting price");
@@ -104,7 +315,7 @@ export async function listActiveAuctions() {
 }
 
 export async function ensureBotAuctionPool({
-  targetActive = 8
+  targetActive = 20
 }: { targetActive?: number } = {}) {
   const activeBotAuctions = await prisma.auction.findMany({
     where: {
@@ -121,6 +332,8 @@ export async function ensureBotAuctionPool({
     }
   });
 
+  await repairSeededAuctionImages(activeBotAuctions);
+
   const missingCount = Math.max(0, targetActive - activeBotAuctions.length);
 
   if (missingCount === 0) {
@@ -131,21 +344,19 @@ export async function ensureBotAuctionPool({
   const activeTitles = new Set(
     activeBotAuctions.map((auction) => auction.item.title)
   );
-  const templates = shuffledTemplates().filter(
-    ([title]) => !activeTitles.has(title)
-  );
+  const templates = templatesForFill(activeTitles);
 
   for (let index = 0; index < missingCount; index += 1) {
     const template = templates[index % templates.length];
-    const [title, category, description, startingPrice, buyoutPrice] = template;
     const seller = bots[index % bots.length];
 
     await prisma.$transaction(async (tx) => {
       const item = await tx.item.create({
         data: {
-          title,
-          category,
-          description,
+          title: template.title,
+          category: template.category,
+          description: template.description,
+          imageUrl: template.imageUrl,
           createdByUserId: seller.id,
           isSeeded: true
         }
@@ -155,9 +366,9 @@ export async function ensureBotAuctionPool({
         data: {
           itemId: item.id,
           sellerId: seller.id,
-          startingPrice,
-          currentPrice: startingPrice,
-          buyoutPrice,
+          startingPrice: template.startingPrice,
+          currentPrice: template.startingPrice,
+          buyoutPrice: template.buyoutPrice,
           endsAt: new Date(Date.now() + ONE_HOUR_MS)
         }
       });
@@ -479,4 +690,77 @@ async function ensureBotUsers() {
 
 function shuffledTemplates() {
   return [...BOT_AUCTION_TEMPLATES].sort(() => Math.random() - 0.5);
+}
+
+function templatesForFill(activeTitles: Set<string>) {
+  const featuredTitles = new Set([
+    "Long-Range Private Jet",
+    "Private Island Glass Estate",
+    "Boutique Tower Equity Slice",
+    "Marina Submersible One"
+  ]);
+  const featured = BOT_AUCTION_TEMPLATES.filter(
+    (template) => featuredTitles.has(template.title) && !activeTitles.has(template.title)
+  );
+  const random = shuffledTemplates().filter(
+    (template) => !featuredTitles.has(template.title) && !activeTitles.has(template.title)
+  );
+
+  return [...featured, ...random];
+}
+
+async function repairSeededAuctionImages(
+  auctions: Array<{
+    id: string;
+    highestBidderId: string | null;
+    item: { id: string; title: string; category: string; imageUrl: string | null };
+  }>
+) {
+  const templatesByTitle = new Map(
+    BOT_AUCTION_TEMPLATES.map((template) => [template.title, template])
+  );
+
+  await Promise.all(
+    auctions.map(async (auction) => {
+      const template = templatesByTitle.get(auction.item.title);
+      const imageUrl = template?.imageUrl ?? imageForCategory(auction.item.category);
+
+      if (!auction.item.imageUrl || template) {
+        await prisma.item.update({
+          where: { id: auction.item.id },
+          data: {
+            category: template?.category ?? auction.item.category,
+            description: template?.description,
+            imageUrl
+          }
+        });
+      }
+
+      if (template && !auction.highestBidderId) {
+        await prisma.auction.update({
+          where: { id: auction.id },
+          data: {
+            startingPrice: template.startingPrice,
+            currentPrice: template.startingPrice,
+            buyoutPrice: template.buyoutPrice
+          }
+        });
+      }
+    })
+  );
+}
+
+function imageForCategory(category: string) {
+  const imagesByCategory: Record<string, string> = {
+    aircraft: IMAGE.jet,
+    asset: IMAGE.collectorVault,
+    boat: IMAGE.racingYacht,
+    building: IMAGE.penthouse,
+    car: IMAGE.redHypercar,
+    helicopter: IMAGE.helicopter,
+    house: IMAGE.islandVilla,
+    submarine: IMAGE.submarine
+  };
+
+  return imagesByCategory[category] ?? IMAGE.asset;
 }
