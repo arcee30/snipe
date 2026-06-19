@@ -1,694 +1,251 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { PageFrame } from "@/components/PageFrame";
+import { useSession } from "@/hooks/useSession";
+import {
+  auctionImage,
+  estimateValue,
+  formatCoins,
+  timeLeft,
+  watcherCount
+} from "@/lib/auction-ui";
+import type { Auction } from "@/lib/auction-ui";
 
-type User = {
-  id: string;
-  username: string;
-};
-
-type Wallet = {
-  balance: number;
-};
-
-type LedgerEntry = {
-  id: string;
-  amount: number;
-  type: string;
-  description: string;
-  createdAt: string;
-};
-
-type Auction = {
-  id: string;
-  startingPrice: number;
-  currentPrice: number;
-  buyoutPrice: number;
-  highestBidderId: string | null;
-  status: string;
-  endsAt: string;
-  item: {
-    title: string;
-    category: string;
-    description: string;
-  };
-  seller: User;
-  highestBidder: User | null;
-};
-
-const categories = ["car", "house", "boat", "asset"];
-
-export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-  const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [ledger, setLedger] = useState<LedgerEntry[]>([]);
+export default function AuctionsPage() {
+  const { user, refreshSession } = useSession();
   const [auctions, setAuctions] = useState<Auction[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [username, setUsername] = useState("");
-  const [bidAmount, setBidAmount] = useState("");
   const [notice, setNotice] = useState("");
-  const [isBusy, setIsBusy] = useState(false);
-  const [listing, setListing] = useState({
-    title: "",
-    category: "car",
-    description: "",
-    startingPrice: "100000",
-    buyoutPrice: "250000"
-  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const selectedAuction = useMemo(
-    () => auctions.find((auction) => auction.id === selectedId) ?? auctions[0],
-    [auctions, selectedId]
-  );
-
-  async function refresh() {
-    const [meResponse, auctionsResponse] = await Promise.all([
-      fetch("/api/me"),
-      fetch("/api/auctions")
-    ]);
-    const meData = await meResponse.json();
-    const auctionData = await auctionsResponse.json();
-
-    setUser(meData.user);
-    setWallet(meData.wallet);
-    setLedger(meData.ledger ?? []);
-    setAuctions(auctionData.auctions ?? []);
+  async function refreshAuctions() {
+    setIsRefreshing(true);
+    try {
+      const response = await fetch("/api/auctions");
+      const data = await response.json();
+      setAuctions(data.auctions ?? []);
+    } finally {
+      setIsRefreshing(false);
+    }
   }
 
   useEffect(() => {
-    refresh();
-    const timer = window.setInterval(refresh, 5_000);
+    refreshAuctions();
+    const timer = window.setInterval(refreshAuctions, 5_000);
     return () => window.clearInterval(timer);
   }, []);
 
-  async function submitUsername(event: FormEvent<HTMLFormElement>) {
+  async function handleBid(auctionId: string, amount: number) {
+    const response = await fetch(`/api/auctions/${auctionId}/bid`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount })
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error ?? "Unable to place bid");
+    }
+
+    setNotice("Bid placed. Your credits are held until you are outbid or the auction closes.");
+    await Promise.all([refreshAuctions(), refreshSession()]);
+    window.dispatchEvent(new Event("snipe-session-change"));
+  }
+
+  async function handleBuyout(auctionId: string) {
+    const response = await fetch(`/api/auctions/${auctionId}/buyout`, {
+      method: "POST"
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error ?? "Unable to buy out auction");
+    }
+
+    setNotice("Buyout complete. The lot is now in your auction history.");
+    await Promise.all([refreshAuctions(), refreshSession()]);
+    window.dispatchEvent(new Event("snipe-session-change"));
+  }
+
+  return (
+    <PageFrame>
+      <section className="mx-auto max-w-7xl px-5 py-10 md:px-8">
+        <div className="flex flex-col gap-4 border-b border-black/10 pb-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
+              Live auctions
+            </h1>
+            <p className="mt-3 max-w-2xl text-[#5f6f80]">
+              Limited drops from bot sellers and players. Bid above the current
+              price, or buy out before someone else takes the lot.
+            </p>
+          </div>
+          <button
+            onClick={refreshAuctions}
+            disabled={isRefreshing}
+            className="w-fit rounded-md border border-black/15 bg-white px-4 py-2 text-sm font-bold shadow-sm disabled:opacity-50"
+          >
+            {isRefreshing ? "Refreshing..." : "Refresh market"}
+          </button>
+        </div>
+
+        {notice ? (
+          <div className="mt-5 rounded-md border border-[#c99a2e]/30 bg-[#fff7df] px-4 py-3 text-sm font-semibold text-[#6f5418]">
+            {notice}
+          </div>
+        ) : null}
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          {auctions.map((auction) => (
+            <AuctionCard
+              key={auction.id}
+              auction={auction}
+              isSignedIn={Boolean(user)}
+              onBid={handleBid}
+              onBuyout={handleBuyout}
+            />
+          ))}
+        </div>
+      </section>
+    </PageFrame>
+  );
+}
+
+function AuctionCard({
+  auction,
+  isSignedIn,
+  onBid,
+  onBuyout
+}: {
+  auction: Auction;
+  isSignedIn: boolean;
+  onBid: (auctionId: string, amount: number) => Promise<void>;
+  onBuyout: (auctionId: string) => Promise<void>;
+}) {
+  const [bidAmount, setBidAmount] = useState(String(auction.currentPrice + 1));
+  const [isBusy, setIsBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setBidAmount(String(auction.currentPrice + 1));
+  }, [auction.currentPrice]);
+
+  async function submitBid(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsBusy(true);
-    setNotice("");
+    setError("");
 
     try {
-      const response = await fetch("/api/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username })
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Unable to enter auction house");
-      }
-
-      setUser(data.user);
-      setWallet(data.wallet);
-      setUsername("");
-      setNotice(`Welcome, ${data.user.username}.`);
-      await refresh();
+      await onBid(auction.id, Number(bidAmount));
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Something went wrong");
+      setError(error instanceof Error ? error.message : "Unable to place bid");
     } finally {
       setIsBusy(false);
     }
   }
 
-  async function signOut() {
+  async function submitBuyout() {
     setIsBusy(true);
-    setNotice("");
+    setError("");
 
     try {
-      const response = await fetch("/api/session", {
-        method: "DELETE"
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error ?? "Unable to sign out");
-      }
-
-      setUser(null);
-      setWallet(null);
-      setLedger([]);
-      setNotice("Signed out.");
-      await refresh();
+      await onBuyout(auction.id);
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Something went wrong");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function submitListing(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsBusy(true);
-    setNotice("");
-
-    try {
-      const response = await fetch("/api/auctions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...listing,
-          startingPrice: Number(listing.startingPrice),
-          buyoutPrice: Number(listing.buyoutPrice)
-        })
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Unable to create listing");
-      }
-
-      setListing({
-        title: "",
-        category: "car",
-        description: "",
-        startingPrice: "100000",
-        buyoutPrice: "250000"
-      });
-      setSelectedId(data.auction.id);
-      setNotice("Listing created for a one-hour auction.");
-      await refresh();
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Something went wrong");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function placeSelectedBid(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedAuction) {
-      return;
-    }
-
-    setIsBusy(true);
-    setNotice("");
-
-    try {
-      const response = await fetch(`/api/auctions/${selectedAuction.id}/bid`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: Number(bidAmount) })
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Unable to place bid");
-      }
-
-      setBidAmount("");
-      setNotice("Bid placed.");
-      await refresh();
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Something went wrong");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  async function buyoutSelectedAuction() {
-    if (!selectedAuction) {
-      return;
-    }
-
-    setIsBusy(true);
-    setNotice("");
-
-    try {
-      const response = await fetch(`/api/auctions/${selectedAuction.id}/buyout`, {
-        method: "POST"
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Unable to buy out auction");
-      }
-
-      setNotice("Auction bought out.");
-      await refresh();
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Something went wrong");
+      setError(error instanceof Error ? error.message : "Unable to buy out auction");
     } finally {
       setIsBusy(false);
     }
   }
 
   return (
-    <main id="top" className="min-h-screen px-5 py-6 text-[#151515] md:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-5">
-        <nav className="sticky top-0 z-20 -mx-5 border-b border-black/10 bg-[#f5f3ee]/90 px-5 py-3 backdrop-blur md:-mx-8 md:px-8">
-          <div className="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <a href="/" className="flex items-center gap-3">
-              <LogoMark />
-              <span className="text-2xl font-semibold tracking-tight">Snipe</span>
-            </a>
-            <div className="flex gap-2 overflow-x-auto text-sm font-semibold text-[#5f6f80]">
-              <a
-                href="#auctions"
-                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
-              >
-                Auctions
-              </a>
-              <a
-                href="#detail"
-                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
-              >
-                Details
-              </a>
-              <a
-                href="#sell"
-                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
-              >
-                Sell
-              </a>
-              <a
-                href="#wallet"
-                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
-              >
-                Wallet
-              </a>
-              <a
-                href="#history"
-                className="rounded-md px-3 py-2 hover:bg-black/5 hover:text-[#151515]"
-              >
-                History
-              </a>
-            </div>
-          </div>
-        </nav>
-
-        <header className="flex flex-col gap-4 border-b border-black/10 pb-5 md:flex-row md:items-end md:justify-between">
-          <div>
-            <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">
-              Snipe
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#5f6f80] md:text-base">
-              Limited auctions, sharp timing, and a rotating market of luxury lots.
-            </p>
-          </div>
-
-          <section
-            id="wallet"
-            className="scroll-mt-24 min-w-72 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm"
-          >
-            {user && wallet ? (
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5f6f80]">
-                  Signed in as {user.username}
-                </p>
-                <p className="mt-2 text-3xl font-semibold">
-                  {formatCoins(wallet.balance)}
-                  <span className="ml-2 text-base text-[#8a6a20]">coins</span>
-                </p>
-                <button
-                  onClick={signOut}
-                  disabled={isBusy}
-                  className="mt-3 rounded-md border border-black/15 px-3 py-2 text-sm font-semibold text-[#151515] disabled:opacity-50"
-                >
-                  Sign out
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={submitUsername} className="flex gap-2">
-                <input
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  placeholder="username"
-                  className="min-w-0 flex-1 rounded-md border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
-                />
-                <button
-                  disabled={isBusy}
-                  className="rounded-md bg-[#151515] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  Enter
-                </button>
-              </form>
-            )}
-          </section>
-        </header>
-
-        {notice ? (
-          <div className="rounded-md border border-[#c99a2e]/30 bg-[#fff7df] px-4 py-3 text-sm text-[#6f5418]">
-            {notice}
-          </div>
-        ) : null}
-
-        <div className="grid gap-5 lg:grid-cols-[1fr_390px]">
-          <section
-            id="auctions"
-            className="scroll-mt-24 rounded-lg border border-black/10 bg-white/70 p-4 shadow-sm"
-          >
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold">Live Auctions</h2>
-                <p className="text-sm text-[#5f6f80]">
-                  Rotating limited lots. If one closes, a new bot auction takes its place.
-                </p>
-              </div>
-              <button
-                onClick={refresh}
-                className="rounded-md border border-black/15 px-3 py-2 text-sm font-semibold"
-              >
-                Refresh
-              </button>
-            </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {auctions.map((auction) => (
-                <button
-                  key={auction.id}
-                  onClick={() => setSelectedId(auction.id)}
-                  className={`overflow-hidden rounded-lg border text-left transition ${
-                    selectedAuction?.id === auction.id
-                      ? "border-[#c99a2e] bg-[#fff9e8]"
-                      : "border-black/10 bg-white hover:border-black/25"
-                  }`}
-                >
-                  <div className="relative aspect-[16/9] overflow-hidden bg-black/5">
-                    <img
-                      src={auctionImage(auction)}
-                      alt={`${auction.item.title} representative auction photo`}
-                      className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-3 text-white">
-                      <span className="rounded bg-white/90 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a6a20]">
-                        {auction.item.category}
-                      </span>
-                      <span className="rounded bg-black/55 px-2 py-1 text-xs font-semibold">
-                        {timeLeft(auction.endsAt)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="text-lg font-semibold">{auction.item.title}</h3>
-                      <span className="shrink-0 rounded-full bg-[#fff2c5] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#8a6a20]">
-                        {auction.highestBidder ? "Bid active" : "Fresh lot"}
-                      </span>
-                    </div>
-                    <p className="mt-3 line-clamp-2 text-sm text-[#5f6f80]">
-                      {auction.item.description}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-[#5f6f80]">
-                      <span>{watcherCount(auction.id)} watching</span>
-                      <span>Est. {formatCoins(estimateValue(auction))}</span>
-                    </div>
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                      <Metric
-                        label="Current"
-                        value={formatCoins(auction.currentPrice)}
-                      />
-                      <Metric
-                        label="Buyout"
-                        value={formatCoins(auction.buyoutPrice)}
-                      />
-                    </div>
-                    <p className="mt-3 text-xs text-[#5f6f80]">
-                      Seller: {auction.seller.username}
-                      {auction.highestBidder
-                        ? ` | Leader: ${auction.highestBidder.username}`
-                        : ""}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <aside className="flex flex-col gap-5">
-            <section
-              id="detail"
-              className="scroll-mt-24 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm"
-            >
-              <h2 className="text-xl font-semibold">Auction Detail</h2>
-              {selectedAuction ? (
-                <div className="mt-4">
-                  <div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-black/5">
-                    <img
-                      src={auctionImage(selectedAuction)}
-                      alt={`${selectedAuction.item.title} representative auction photo`}
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/75 to-transparent p-3 text-white">
-                      <span className="rounded bg-white/90 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a6a20]">
-                        {selectedAuction.item.category}
-                      </span>
-                      <span className="rounded bg-[#c99a2e] px-2 py-1 text-xs font-bold text-white">
-                        {watcherCount(selectedAuction.id)} watching
-                      </span>
-                    </div>
-                  </div>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-[#8a6a20]">
-                    {selectedAuction.item.category}
-                  </p>
-                  <h3 className="mt-1 text-2xl font-semibold">
-                    {selectedAuction.item.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-[#5f6f80]">
-                    {selectedAuction.item.description}
-                  </p>
-                  <div className="mt-3 rounded-md bg-[#fff7df] px-3 py-2 text-sm font-semibold text-[#6f5418]">
-                    Estimated value {formatCoins(estimateValue(selectedAuction))}.
-                    Buyout saves {formatCoins(estimateValue(selectedAuction) - selectedAuction.buyoutPrice)} versus estimate.
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <Metric
-                      label="Current bid"
-                      value={formatCoins(selectedAuction.currentPrice)}
-                    />
-                    <Metric
-                      label="Buyout"
-                      value={formatCoins(selectedAuction.buyoutPrice)}
-                    />
-                    <Metric
-                      label="Ends in"
-                      value={timeLeft(selectedAuction.endsAt)}
-                    />
-                    <Metric
-                      label="Leader"
-                      value={selectedAuction.highestBidder?.username ?? "No bids"}
-                    />
-                  </div>
-
-                  <form onSubmit={placeSelectedBid} className="mt-4 flex gap-2">
-                    <input
-                      value={bidAmount}
-                      onChange={(event) => setBidAmount(event.target.value)}
-                      placeholder={`${selectedAuction.currentPrice + 1}`}
-                      inputMode="numeric"
-                      className="min-w-0 flex-1 rounded-md border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
-                    />
-                    <button
-                      disabled={!user || isBusy}
-                      className="rounded-md bg-[#151515] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                    >
-                      Bid
-                    </button>
-                  </form>
-                  <button
-                    onClick={buyoutSelectedAuction}
-                    disabled={!user || isBusy}
-                    className="mt-3 w-full rounded-md bg-[#c99a2e] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                  >
-                    Buyout for {formatCoins(selectedAuction.buyoutPrice)} coins
-                  </button>
-                </div>
-              ) : (
-                <p className="mt-4 text-sm text-[#5f6f80]">
-                  No active auctions. Seed the database or create a listing.
-                </p>
-              )}
-            </section>
-
-            <section
-              id="sell"
-              className="scroll-mt-24 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm"
-            >
-              <h2 className="text-xl font-semibold">Create Listing</h2>
-              <form onSubmit={submitListing} className="mt-4 grid gap-3">
-                <input
-                  value={listing.title}
-                  onChange={(event) =>
-                    setListing({ ...listing, title: event.target.value })
-                  }
-                  placeholder="Asset title"
-                  className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
-                />
-                <select
-                  value={listing.category}
-                  onChange={(event) =>
-                    setListing({ ...listing, category: event.target.value })
-                  }
-                  className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
-                >
-                  {categories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-                <textarea
-                  value={listing.description}
-                  onChange={(event) =>
-                    setListing({ ...listing, description: event.target.value })
-                  }
-                  placeholder="Short description"
-                  rows={3}
-                  className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
-                />
-                <div className="grid grid-cols-2 gap-3">
-                  <input
-                    value={listing.startingPrice}
-                    onChange={(event) =>
-                      setListing({ ...listing, startingPrice: event.target.value })
-                    }
-                    inputMode="numeric"
-                    className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
-                  />
-                  <input
-                    value={listing.buyoutPrice}
-                    onChange={(event) =>
-                      setListing({ ...listing, buyoutPrice: event.target.value })
-                    }
-                    inputMode="numeric"
-                    className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
-                  />
-                </div>
-                <button
-                  disabled={!user || isBusy}
-                  className="rounded-md bg-[#151515] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  Start 1-hour auction
-                </button>
-              </form>
-            </section>
-
-            <section
-              id="history"
-              className="scroll-mt-24 rounded-lg border border-black/10 bg-white/75 p-4 shadow-sm"
-            >
-              <h2 className="text-xl font-semibold">Transaction History</h2>
-              <div className="mt-3 max-h-72 space-y-2 overflow-auto">
-                {ledger.length > 0 ? (
-                  ledger.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="flex items-start justify-between gap-3 rounded-md bg-black/[0.03] px-3 py-2 text-sm"
-                    >
-                      <div>
-                        <p className="font-semibold">{entry.type}</p>
-                        <p className="text-xs text-[#5f6f80]">{entry.description}</p>
-                      </div>
-                      <span
-                        className={
-                          entry.amount >= 0
-                            ? "font-semibold text-[#2f7d32]"
-                            : "font-semibold text-[#a33131]"
-                        }
-                      >
-                        {entry.amount >= 0 ? "+" : ""}
-                        {formatCoins(entry.amount)}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-[#5f6f80]">
-                    Enter a username to see wallet activity.
-                  </p>
-                )}
-              </div>
-            </section>
-          </aside>
+    <article className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/10">
+      <div className="relative aspect-[16/9] overflow-hidden bg-black">
+        <img
+          src={auctionImage(auction)}
+          alt={`${auction.item.title} auction lot`}
+          className="h-full w-full object-cover transition duration-500 hover:scale-[1.03]"
+        />
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/75 to-transparent p-4 text-white">
+          <span className="rounded bg-white/90 px-2 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#8a6a20]">
+            {auction.item.category}
+          </span>
+          <span className="rounded bg-black/55 px-3 py-2 text-sm font-bold">
+            {timeLeft(auction.endsAt)}
+          </span>
         </div>
       </div>
-    </main>
+
+      <div className="p-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {auction.item.title}
+            </h2>
+            <p className="mt-2 leading-7 text-[#5f6f80]">
+              {auction.item.description}
+            </p>
+          </div>
+          <span className="w-fit shrink-0 rounded-full bg-[#fff2c5] px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-[#8a6a20]">
+            {auction.highestBidder ? "Bid active" : "Fresh lot"}
+          </span>
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-4">
+          <Metric label="Current" value={formatCoins(auction.currentPrice)} />
+          <Metric label="Buyout" value={formatCoins(auction.buyoutPrice)} />
+          <Metric label="Estimate" value={formatCoins(estimateValue(auction))} />
+          <Metric label="Watching" value={String(watcherCount(auction.id))} />
+        </div>
+
+        <p className="mt-4 text-sm text-[#5f6f80]">
+          Seller: <span className="font-semibold">{auction.seller.username}</span>
+          {auction.highestBidder
+            ? ` | Leader: ${auction.highestBidder.username}`
+            : ""}
+        </p>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto]">
+          <form onSubmit={submitBid} className="flex gap-2">
+            <input
+              value={bidAmount}
+              onChange={(event) => setBidAmount(event.target.value)}
+              inputMode="numeric"
+              className="min-w-0 flex-1 rounded-md border border-black/15 bg-white px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
+            />
+            <button
+              disabled={!isSignedIn || isBusy}
+              className="rounded-md bg-[#151515] px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+            >
+              Bid
+            </button>
+          </form>
+          <button
+            onClick={submitBuyout}
+            disabled={!isSignedIn || isBusy}
+            className="rounded-md bg-[#d0a02e] px-4 py-2 text-sm font-bold text-[#151515] disabled:opacity-50"
+          >
+            Buyout
+          </button>
+        </div>
+
+        {!isSignedIn ? (
+          <p className="mt-3 text-sm font-semibold text-[#8a6a20]">
+            Sign in from the navbar to bid.
+          </p>
+        ) : null}
+        {error ? <p className="mt-3 text-sm font-semibold text-[#a33131]">{error}</p> : null}
+      </div>
+    </article>
   );
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md bg-black/[0.04] px-3 py-2">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#5f6f80]">
+      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#5f6f80]">
         {label}
       </p>
       <p className="mt-1 truncate text-sm font-semibold">{value}</p>
     </div>
   );
-}
-
-function LogoMark() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 64 64"
-      className="h-10 w-10 shrink-0"
-      fill="none"
-    >
-      <rect width="64" height="64" rx="16" fill="#151515" />
-      <circle cx="32" cy="32" r="21" stroke="#c99a2e" strokeWidth="4" />
-      <path
-        d="M32 8v8M32 48v8M8 32h8M48 32h8"
-        stroke="#f7f4ee"
-        strokeLinecap="round"
-        strokeWidth="3"
-      />
-      <path
-        d="M20 39c5 6 18 5 22-3 4-9-8-11-14-8-5 2-6 8 0 10 6 3 15 0 18-7"
-        stroke="#f7f4ee"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="4"
-      />
-      <path
-        d="M25 38 44 19l3 3-19 19-8 3 5-6Z"
-        fill="#c99a2e"
-      />
-      <circle cx="31" cy="32" r="3" fill="#151515" />
-    </svg>
-  );
-}
-
-function formatCoins(value: number) {
-  return new Intl.NumberFormat("en-US").format(value);
-}
-
-function timeLeft(endsAt: string) {
-  const diff = new Date(endsAt).getTime() - Date.now();
-
-  if (diff <= 0) {
-    return "closing";
-  }
-
-  const minutes = Math.floor(diff / 60_000);
-  const seconds = Math.floor((diff % 60_000) / 1_000);
-
-  return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
-}
-
-function auctionImage(auction: Auction) {
-  const title = auction.item.title.toLowerCase();
-
-  if (title.includes("villa") || title.includes("penthouse")) {
-    return "/auction-assets/house.png";
-  }
-
-  if (title.includes("yacht") || auction.item.category === "boat") {
-    return "/auction-assets/boat.png";
-  }
-
-  if (title.includes("car") || auction.item.category === "car") {
-    return "/auction-assets/car.png";
-  }
-
-  return "/auction-assets/asset.png";
-}
-
-function watcherCount(id: string) {
-  const hash = Array.from(id).reduce((total, char) => total + char.charCodeAt(0), 0);
-  return 12 + (hash % 28);
-}
-
-function estimateValue(auction: Auction) {
-  return Math.round((auction.buyoutPrice * 1.18) / 1_000) * 1_000;
 }

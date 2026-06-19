@@ -9,6 +9,7 @@ export type CreateAuctionInput = {
   title: string;
   category: string;
   description: string;
+  imageUrl?: string;
   startingPrice: number;
   buyoutPrice: number;
   endsAt?: Date;
@@ -76,6 +77,7 @@ export async function createAuction(userId: string, input: CreateAuctionInput) {
       title: input.title.trim(),
       category: input.category,
       description: input.description.trim(),
+      imageUrl: input.imageUrl?.trim() || null,
       createdByUserId: userId
     }
   });

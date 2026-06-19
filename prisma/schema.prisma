@@ -55,6 +55,7 @@ model Item {
   title           String
   category        String
   description     String
+  imageUrl        String?
   createdByUserId String
   isSeeded        Boolean  @default(false)
   createdAt       DateTime @default(now())

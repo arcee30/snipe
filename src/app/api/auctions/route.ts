@@ -28,6 +28,7 @@ export async function POST(request: Request) {
       title: String(body.title ?? ""),
       category: String(body.category ?? "asset"),
       description: String(body.description ?? ""),
+      imageUrl: String(body.imageUrl ?? ""),
       startingPrice: Number(body.startingPrice),
       buyoutPrice: Number(body.buyoutPrice)
     });

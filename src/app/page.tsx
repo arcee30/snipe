@@ -1,11 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-type User = {
-  id: string;
-  username: string;
-};
+import { PageFrame } from "@/components/PageFrame";
+import { useSession } from "@/hooks/useSession";
 
 const marketItems = [
   {
@@ -26,17 +22,10 @@ const marketItems = [
 ];
 
 export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    fetch("/api/me")
-      .then((response) => response.json())
-      .then((data) => setUser(data.user))
-      .catch(() => setUser(null));
-  }, []);
+  const { user } = useSession();
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#0f1110] text-white">
+    <PageFrame tone="dark">
       <section className="relative min-h-[88vh] overflow-hidden">
         <img
           src="/auction-assets/boat.png"
@@ -47,28 +36,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-black/15" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#0f1110] to-transparent" />
 
-        <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-7xl flex-col px-5 py-6 md:px-8">
-          <nav className="flex flex-col gap-4 border-b border-white/15 pb-4 md:flex-row md:items-center md:justify-between">
-            <a href="/" className="flex items-center gap-3">
-              <LogoMark />
-              <span className="text-2xl font-semibold tracking-tight">Snipe</span>
-            </a>
-            <div className="flex gap-2 overflow-x-auto text-sm font-semibold text-white/75">
-              <a className="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white" href="/auctions">
-                Auctions
-              </a>
-              <a className="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white" href="/auctions#sell">
-                Sell
-              </a>
-              <a className="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white" href="/auctions#wallet">
-                Wallet
-              </a>
-              <a className="rounded-md px-3 py-2 hover:bg-white/10 hover:text-white" href="#contact">
-                Contact
-              </a>
-            </div>
-          </nav>
-
+        <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-7xl flex-col px-5 md:px-8">
           <div className="flex flex-1 items-center py-14">
             <div className="max-w-3xl">
               <h1 className="max-w-full text-[2.8rem] font-semibold leading-[0.95] tracking-tight sm:text-5xl md:text-7xl">
@@ -206,7 +174,7 @@ export default function Home() {
           <p>(c) 2026 Snipe</p>
         </div>
       </footer>
-    </main>
+    </PageFrame>
   );
 }
 
@@ -225,18 +193,5 @@ function Feature({ title, body }: { title: string; body: string }) {
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-3 text-sm leading-6 text-[#5f6f80]">{body}</p>
     </div>
-  );
-}
-
-function LogoMark() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 64 64" className="h-10 w-10 shrink-0" fill="none">
-      <rect width="64" height="64" rx="16" fill="#151515" />
-      <circle cx="32" cy="32" r="21" stroke="#c99a2e" strokeWidth="4" />
-      <path d="M32 8v8M32 48v8M8 32h8M48 32h8" stroke="#f7f4ee" strokeLinecap="round" strokeWidth="3" />
-      <path d="M20 39c5 6 18 5 22-3 4-9-8-11-14-8-5 2-6 8 0 10 6 3 15 0 18-7" stroke="#f7f4ee" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" />
-      <path d="M25 38 44 19l3 3-19 19-8 3 5-6Z" fill="#c99a2e" />
-      <circle cx="31" cy="32" r="3" fill="#151515" />
-    </svg>
   );
 }

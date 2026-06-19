@@ -1,12 +1,9 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, rmSync } from "node:fs";
+import { existsSync, readdirSync, rmSync } from "node:fs";
 import { resolve } from "node:path";
 
 const testDbPath = resolve(process.cwd(), "prisma/test.db");
-const migrationPath = resolve(
-  process.cwd(),
-  "prisma/migrations/0001_init/migration.sql"
-);
+const migrationsPath = resolve(process.cwd(), "prisma/migrations");
 
 process.env.DATABASE_URL = "file:./test.db";
 
@@ -14,4 +11,7 @@ if (existsSync(testDbPath)) {
   rmSync(testDbPath);
 }
 
-execFileSync("sqlite3", [testDbPath, `.read ${migrationPath}`]);
+for (const migration of readdirSync(migrationsPath).sort()) {
+  const migrationPath = resolve(migrationsPath, migration, "migration.sql");
+  execFileSync("sqlite3", [testDbPath, `.read ${migrationPath}`]);
+}
