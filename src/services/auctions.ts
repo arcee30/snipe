@@ -53,6 +53,9 @@ const IMAGE = {
   asset: "/auction-assets/asset.png"
 } as const;
 
+const LUXURY_2026_IMAGE_BASE = "/auction-assets/generated/luxury-2026-jpg";
+const luxury2026Image = (slug: string) => `${LUXURY_2026_IMAGE_BASE}/${slug}.jpg`;
+
 const BOT_AUCTION_TEMPLATES = [
   {
     title: "2026 Carbon Apex R",
@@ -261,6 +264,406 @@ const BOT_AUCTION_TEMPLATES = [
     startingPrice: 210_000,
     buyoutPrice: 460_000,
     imageUrl: IMAGE.yachtMarina
+  },
+  {
+    title: "Alpine Silver Grand Tourer",
+    category: "car",
+    description: "A restored silver grand tourer with alpine provenance.",
+    startingPrice: 1_200_000,
+    buyoutPrice: 2_800_000,
+    imageUrl: luxury2026Image("vintage-silver-grand-tourer")
+  },
+  {
+    title: "Armored Executive SUV",
+    category: "car",
+    description: "A discreet armored SUV prepared for private-security transport.",
+    startingPrice: 1_000_000,
+    buyoutPrice: 2_400_000,
+    imageUrl: luxury2026Image("armored-luxury-suv")
+  },
+  {
+    title: "Emerald Works Racer",
+    category: "car",
+    description: "A museum-grade classic racing car in collector condition.",
+    startingPrice: 3_000_000,
+    buyoutPrice: 7_500_000,
+    imageUrl: luxury2026Image("emerald-classic-racing-car")
+  },
+  {
+    title: "White Arc Electric Hypercar",
+    category: "car",
+    description: "A glass-showroom electric hypercar with launch-spec hardware.",
+    startingPrice: 1_800_000,
+    buyoutPrice: 4_200_000,
+    imageUrl: luxury2026Image("white-electric-hypercar")
+  },
+  {
+    title: "Midnight Coast Coupe",
+    category: "car",
+    description: "A deep-blue luxury coupe configured for coastal grand touring.",
+    startingPrice: 450_000,
+    buyoutPrice: 1_100_000,
+    imageUrl: luxury2026Image("midnight-blue-luxury-coupe")
+  },
+  {
+    title: "Mediterranean 1960s Cabriolet",
+    category: "car",
+    description: "A restored open-top classic with Mediterranean ownership history.",
+    startingPrice: 800_000,
+    buyoutPrice: 2_100_000,
+    imageUrl: luxury2026Image("mediterranean-1960s-convertible")
+  },
+  {
+    title: "Aurum Concept Motorcycle",
+    category: "motorcycle",
+    description: "A gold-accented concept motorcycle built as a design study.",
+    startingPrice: 250_000,
+    buyoutPrice: 850_000,
+    imageUrl: luxury2026Image("gold-concept-motorcycle")
+  },
+  {
+    title: "Carbon Street Superbike",
+    category: "motorcycle",
+    description: "A carbon-fiber superbike tuned for night-city performance.",
+    startingPrice: 180_000,
+    buyoutPrice: 450_000,
+    imageUrl: luxury2026Image("carbon-fiber-superbike")
+  },
+  {
+    title: "Desert Expedition Camper",
+    category: "truck",
+    description: "A self-contained expedition truck with long-range desert capability.",
+    startingPrice: 650_000,
+    buyoutPrice: 1_400_000,
+    imageUrl: luxury2026Image("desert-expedition-camper")
+  },
+  {
+    title: "Private Formula Chassis",
+    category: "car",
+    description: "A formula-style race car maintained in a private team garage.",
+    startingPrice: 2_200_000,
+    buyoutPrice: 5_800_000,
+    imageUrl: luxury2026Image("private-formula-race-car")
+  },
+  {
+    title: "Lagoon Glass Residence",
+    category: "house",
+    description: "A floating glass residence positioned over a tropical lagoon.",
+    startingPrice: 4_500_000,
+    buyoutPrice: 12_000_000,
+    imageUrl: luxury2026Image("floating-glass-lagoon-house")
+  },
+  {
+    title: "North Face Ski Chalet",
+    category: "house",
+    description: "A snowline chalet with full-height glass and private slope access.",
+    startingPrice: 3_200_000,
+    buyoutPrice: 8_000_000,
+    imageUrl: luxury2026Image("alpine-ski-chalet")
+  },
+  {
+    title: "Volcanic Cliff Villa",
+    category: "house",
+    description: "A basalt-cut cliffside villa with open ocean frontage.",
+    startingPrice: 6_000_000,
+    buyoutPrice: 18_000_000,
+    imageUrl: luxury2026Image("volcanic-cliffside-villa")
+  },
+  {
+    title: "Koi Garden Minimalist Estate",
+    category: "house",
+    description: "A Japanese minimalist estate arranged around water and stone.",
+    startingPrice: 4_000_000,
+    buyoutPrice: 11_000_000,
+    imageUrl: luxury2026Image("japanese-minimalist-estate")
+  },
+  {
+    title: "Tuscan Vineyard Manor",
+    category: "house",
+    description: "A vineyard manor with production grounds and cypress-lined access.",
+    startingPrice: 7_000_000,
+    buyoutPrice: 22_000_000,
+    imageUrl: luxury2026Image("tuscan-vineyard-manor")
+  },
+  {
+    title: "Private Island Villa Compound",
+    category: "house",
+    description: "A private island compound with beach villas and yacht access.",
+    startingPrice: 25_000_000,
+    buyoutPrice: 80_000_000,
+    imageUrl: luxury2026Image("private-island-compound")
+  },
+  {
+    title: "Hidden Courtyard Bunker Estate",
+    category: "house",
+    description: "A secure underground mansion built around a concealed courtyard.",
+    startingPrice: 8_000_000,
+    buyoutPrice: 30_000_000,
+    imageUrl: luxury2026Image("underground-bunker-mansion")
+  },
+  {
+    title: "Modernized Historic Castle",
+    category: "house",
+    description: "A renovated castle blending preserved stonework with modern interiors.",
+    startingPrice: 12_000_000,
+    buyoutPrice: 45_000_000,
+    imageUrl: luxury2026Image("renovated-historic-castle")
+  },
+  {
+    title: "Rainforest Glass Treehouse",
+    category: "house",
+    description: "An elevated glass retreat suspended in a rainforest canopy.",
+    startingPrice: 2_500_000,
+    buyoutPrice: 7_000_000,
+    imageUrl: luxury2026Image("rainforest-glass-treehouse")
+  },
+  {
+    title: "Lakefront Seaplane Cabin",
+    category: "house",
+    description: "A lakefront cabin with private dock access for seaplane arrivals.",
+    startingPrice: 3_000_000,
+    buyoutPrice: 9_500_000,
+    imageUrl: luxury2026Image("lakefront-cabin-seaplane-dock")
+  },
+  {
+    title: "Panoramic Sleeper Train Suite",
+    category: "rail",
+    description: "A private sleeper suite configured for panoramic rail travel.",
+    startingPrice: 1_600_000,
+    buyoutPrice: 4_800_000,
+    imageUrl: luxury2026Image("luxury-sleeper-train-suite")
+  },
+  {
+    title: "Art Deco Private Railcar",
+    category: "rail",
+    description: "A restored private railcar finished in art deco materials.",
+    startingPrice: 2_500_000,
+    buyoutPrice: 7_200_000,
+    imageUrl: luxury2026Image("art-deco-private-railcar")
+  },
+  {
+    title: "Presidential Security Limousine",
+    category: "car",
+    description: "A bullet-resistant executive limousine prepared for secure convoys.",
+    startingPrice: 1_400_000,
+    buyoutPrice: 3_600_000,
+    imageUrl: luxury2026Image("armored-presidential-limousine")
+  },
+  {
+    title: "Autonomous Lounge Pod",
+    category: "car",
+    description: "A futuristic autonomous pod with a private lounge-style cabin.",
+    startingPrice: 650_000,
+    buyoutPrice: 1_900_000,
+    imageUrl: luxury2026Image("autonomous-luxury-pod")
+  },
+  {
+    title: "Safari Expedition Convoy",
+    category: "truck",
+    description: "A luxury expedition convoy staged for remote camp operations.",
+    startingPrice: 2_000_000,
+    buyoutPrice: 6_500_000,
+    imageUrl: luxury2026Image("safari-expedition-convoy")
+  },
+  {
+    title: "Aurora Polar Explorer",
+    category: "truck",
+    description: "A polar exploration vehicle built for extended cold-weather travel.",
+    startingPrice: 3_500_000,
+    buyoutPrice: 10_000_000,
+    imageUrl: luxury2026Image("polar-exploration-vehicle")
+  },
+  {
+    title: "Carbon Cockpit Simulator Room",
+    category: "asset",
+    description: "A private racing simulator room built around a carbon cockpit.",
+    startingPrice: 350_000,
+    buyoutPrice: 1_200_000,
+    imageUrl: luxury2026Image("carbon-racing-simulator-room")
+  },
+  {
+    title: "Private Formula Paddock Suite",
+    category: "asset",
+    description: "A trackside hospitality suite attached to a private racing paddock.",
+    startingPrice: 5_000_000,
+    buyoutPrice: 16_000_000,
+    imageUrl: luxury2026Image("formula-paddock-suite")
+  },
+  {
+    title: "Elite Show Horse Trailer",
+    category: "asset",
+    description: "A bespoke equestrian transport setup for elite show operations.",
+    startingPrice: 300_000,
+    buyoutPrice: 900_000,
+    imageUrl: luxury2026Image("luxury-horse-trailer")
+  },
+  {
+    title: "Bespoke Electric Speedboat",
+    category: "boat",
+    description: "A silent electric speedboat with custom teak and carbon detailing.",
+    startingPrice: 700_000,
+    buyoutPrice: 2_000_000,
+    imageUrl: luxury2026Image("bespoke-electric-speedboat")
+  },
+  {
+    title: "Solar Arctic Explorer Yacht",
+    category: "boat",
+    description: "A solar-assisted explorer yacht prepared for Arctic passages.",
+    startingPrice: 18_000_000,
+    buyoutPrice: 60_000_000,
+    imageUrl: luxury2026Image("solar-explorer-yacht")
+  },
+  {
+    title: "Classic Lake Como Runabout",
+    category: "boat",
+    description: "A varnished wooden runabout built for classic lake cruising.",
+    startingPrice: 600_000,
+    buyoutPrice: 1_800_000,
+    imageUrl: luxury2026Image("classic-wooden-lake-boat")
+  },
+  {
+    title: "Carbon Ocean Racing Sailboat",
+    category: "boat",
+    description: "A high-performance racing sailboat with ocean-ready carbon rigging.",
+    startingPrice: 3_500_000,
+    buyoutPrice: 12_000_000,
+    imageUrl: luxury2026Image("racing-sailboat")
+  },
+  {
+    title: "Floating Beach Club Platform",
+    category: "asset",
+    description: "A modular floating beach club with lounge decks and tender access.",
+    startingPrice: 6_000_000,
+    buyoutPrice: 20_000_000,
+    imageUrl: luxury2026Image("floating-beach-club")
+  },
+  {
+    title: "Deep-Sea Research Vessel",
+    category: "boat",
+    description: "An expedition research vessel upgraded with private hospitality spaces.",
+    startingPrice: 30_000_000,
+    buyoutPrice: 120_000_000,
+    imageUrl: luxury2026Image("deep-sea-research-vessel")
+  },
+  {
+    title: "Oceanfront Submarine Garage",
+    category: "submarine",
+    description: "A cliff-carved private submarine bay with secure ocean access.",
+    startingPrice: 10_000_000,
+    buyoutPrice: 40_000_000,
+    imageUrl: luxury2026Image("oceanfront-submarine-garage")
+  },
+  {
+    title: "Tropical Resort Seaplane",
+    category: "aircraft",
+    description: "A luxury seaplane configured for resort and island transfers.",
+    startingPrice: 1_200_000,
+    buyoutPrice: 3_800_000,
+    imageUrl: luxury2026Image("tropical-luxury-seaplane")
+  },
+  {
+    title: "Restored Propeller Aircraft",
+    category: "aircraft",
+    description: "A vintage propeller aircraft restored for private collection display.",
+    startingPrice: 900_000,
+    buyoutPrice: 2_600_000,
+    imageUrl: luxury2026Image("vintage-propeller-aircraft")
+  },
+  {
+    title: "Supersonic Private Jet Concept",
+    category: "aircraft",
+    description: "A supersonic private jet concept staged in a futuristic hangar.",
+    startingPrice: 40_000_000,
+    buyoutPrice: 180_000_000,
+    imageUrl: luxury2026Image("supersonic-private-jet-concept")
+  },
+  {
+    title: "Desert Sunrise Balloon Suite",
+    category: "aircraft",
+    description: "A luxury balloon suite designed for high-end desert flights.",
+    startingPrice: 500_000,
+    buyoutPrice: 1_700_000,
+    imageUrl: luxury2026Image("hot-air-balloon-suite")
+  },
+  {
+    title: "Vaulted Gemstone Collection",
+    category: "collectible",
+    description: "A secure collection of rare stones arranged for private sale.",
+    startingPrice: 5_000_000,
+    buyoutPrice: 20_000_000,
+    imageUrl: luxury2026Image("rare-gemstone-collection")
+  },
+  {
+    title: "Museum-Grade Fossil Gallery",
+    category: "collectible",
+    description: "A dinosaur fossil display prepared for private gallery placement.",
+    startingPrice: 12_000_000,
+    buyoutPrice: 45_000_000,
+    imageUrl: luxury2026Image("dinosaur-fossil-gallery")
+  },
+  {
+    title: "Ancient Marble Atrium Statue",
+    category: "collectible",
+    description: "A classical marble statue displayed in a private collector atrium.",
+    startingPrice: 8_000_000,
+    buyoutPrice: 35_000_000,
+    imageUrl: luxury2026Image("ancient-marble-statue")
+  },
+  {
+    title: "Black Stone Meteorite Display",
+    category: "collectible",
+    description: "A meteorite centerpiece mounted in a private exhibition room.",
+    startingPrice: 4_000_000,
+    buyoutPrice: 16_000_000,
+    imageUrl: luxury2026Image("meteorite-exhibition-room")
+  },
+  {
+    title: "Rare Mechanical Watch Collection",
+    category: "collectible",
+    description: "A secure glass-case collection of rare mechanical watches.",
+    startingPrice: 3_000_000,
+    buyoutPrice: 12_000_000,
+    imageUrl: luxury2026Image("mechanical-watch-collection")
+  },
+  {
+    title: "Heritage Wine Cellar Reserve",
+    category: "collectible",
+    description: "A vaulted wine reserve containing investment-grade bottles.",
+    startingPrice: 6_000_000,
+    buyoutPrice: 25_000_000,
+    imageUrl: luxury2026Image("vintage-wine-cellar")
+  },
+  {
+    title: "Private Masterworks Vault",
+    category: "collectible",
+    description: "A climate-controlled art vault holding covered masterworks.",
+    startingPrice: 20_000_000,
+    buyoutPrice: 100_000_000,
+    imageUrl: luxury2026Image("private-art-vault")
+  },
+  {
+    title: "High-Security Bullion Reserve",
+    category: "collectible",
+    description: "A private bullion room with secured gold reserves.",
+    startingPrice: 50_000_000,
+    buyoutPrice: 200_000_000,
+    imageUrl: luxury2026Image("gold-bullion-vault")
+  },
+  {
+    title: "Championship Stable Prospect",
+    category: "horse",
+    description: "A championship racehorse presented from a private luxury stable.",
+    startingPrice: 2_000_000,
+    buyoutPrice: 15_000_000,
+    imageUrl: luxury2026Image("championship-racehorse")
+  },
+  {
+    title: "Lunar Memorabilia Claim Display",
+    category: "collectible",
+    description: "A lunar-themed claim display with astronaut-era memorabilia.",
+    startingPrice: 10_000_000,
+    buyoutPrice: 75_000_000,
+    imageUrl: luxury2026Image("lunar-claim-memorabilia")
   }
 ] satisfies BotAuctionTemplate[];
 
@@ -315,7 +718,7 @@ export async function listActiveAuctions() {
 }
 
 export async function ensureBotAuctionPool({
-  targetActive = 20
+  targetActive = 50
 }: { targetActive?: number } = {}) {
   const activeBotAuctions = await prisma.auction.findMany({
     where: {
@@ -694,6 +1097,12 @@ function shuffledTemplates() {
 
 function templatesForFill(activeTitles: Set<string>) {
   const featuredTitles = new Set([
+    "Supersonic Private Jet Concept",
+    "High-Security Bullion Reserve",
+    "Deep-Sea Research Vessel",
+    "Private Island Villa Compound",
+    "Private Masterworks Vault",
+    "Museum-Grade Fossil Gallery",
     "Long-Range Private Jet",
     "Private Island Glass Estate",
     "Boutique Tower Equity Slice",

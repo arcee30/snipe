@@ -10,7 +10,14 @@ import {
 } from "@/lib/auction-ui";
 import type { LedgerEntry } from "@/lib/auction-ui";
 
-const balanceIncrements = [100_000, 500_000, 1_000_000, 2_500_000, 5_000_000];
+const balanceIncrements = [
+  500_000,
+  1_000_000,
+  5_000_000,
+  25_000_000,
+  100_000_000,
+  500_000_000
+];
 
 export default function WalletPage() {
   const { user, wallet, refreshSession } = useSession();
