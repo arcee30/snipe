@@ -12,7 +12,7 @@ const navItems = [
   { href: "/portfolio", label: "Portfolio" },
   { href: "/wallet", label: "Wallet" },
   { href: "/history", label: "History" },
-  { href: "/#contact", label: "Contact" }
+  { href: "/contact", label: "Contact" }
 ];
 
 export function AppNav() {
@@ -69,11 +69,10 @@ export function AppNav() {
           <span className="text-2xl font-semibold tracking-tight">Snipe</span>
         </a>
 
-        <div className="flex flex-wrap items-center gap-2 md:justify-end">
-          <nav className="flex gap-1 overflow-x-auto text-sm font-semibold text-white/70">
+        <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
+          <nav className="flex w-full max-w-full gap-1 overflow-x-auto text-sm font-semibold text-white/70 md:w-auto">
             {navItems.map((item) => {
-              const isActive =
-                item.href !== "/#contact" && pathname === item.href;
+              const isActive = pathname === item.href;
 
               return (
                 <a
@@ -92,7 +91,7 @@ export function AppNav() {
           </nav>
 
           {user && wallet ? (
-            <div className="flex items-center gap-2 pl-0 md:pl-2">
+            <div className="flex shrink-0 items-center gap-2 pl-0 md:pl-2">
               <a
                 href="/wallet"
                 className="rounded-md border border-[#d0a02e]/45 bg-[#d0a02e]/15 px-3 py-2 text-sm font-bold text-[#f2c85b]"
@@ -108,7 +107,7 @@ export function AppNav() {
               </button>
             </div>
           ) : (
-            <div className="pl-0 md:pl-2">
+            <div className="shrink-0 pl-0 md:pl-2">
               <a
                 href="/signin"
                 className="inline-flex rounded-md bg-[#d0a02e] px-4 py-2 text-sm font-bold text-[#151515] transition hover:bg-[#e4b645]"

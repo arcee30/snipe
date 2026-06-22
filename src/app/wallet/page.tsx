@@ -67,7 +67,7 @@ export default function WalletPage() {
             <p className="mt-5 leading-7 text-white/62">
               {user
                 ? `Signed in as ${user.username}.`
-                : "Sign in from the navbar to activate a wallet."} Future paid
+                : "Sign in to activate a wallet."} Future paid
               credit packs will live here; for the MVP, these top-ups are free.
             </p>
           </div>

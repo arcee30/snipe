@@ -167,9 +167,11 @@ export default function Home() {
         </div>
       </section>
 
-      <footer id="contact" className="bg-[#0f1110] px-5 py-8 text-sm text-white/60 md:px-8">
+      <footer className="bg-[#0f1110] px-5 py-8 text-sm text-white/60 md:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p>Contact: hello@snipe-auctions.test</p>
+          <a href="/contact" className="transition hover:text-white">
+            Contact: spinnerclow21@gmail.com
+          </a>
           <p>Support: support@snipe-auctions.test</p>
           <p>(c) 2026 Snipe</p>
         </div>

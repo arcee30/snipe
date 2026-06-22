@@ -151,7 +151,7 @@ export default function SellPage() {
               <p className="text-sm text-[#5f6f80]">
                 {user
                   ? `Selling as ${user.username}`
-                  : "Sign in from the navbar before creating a listing."}
+                  : "Sign in before creating a listing."}
               </p>
             </div>
 
