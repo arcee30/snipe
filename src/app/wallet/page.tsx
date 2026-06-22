@@ -3,10 +3,14 @@
 import { useEffect, useState } from "react";
 import { PageFrame } from "@/components/PageFrame";
 import { useSession } from "@/hooks/useSession";
-import { formatCoins } from "@/lib/auction-ui";
+import {
+  formatCoins,
+  ledgerDescription,
+  ledgerTypeLabel
+} from "@/lib/auction-ui";
 import type { LedgerEntry } from "@/lib/auction-ui";
 
-const creditPacks = [100_000, 500_000, 1_000_000, 2_500_000, 5_000_000];
+const balanceIncrements = [100_000, 500_000, 1_000_000, 2_500_000, 5_000_000];
 
 export default function WalletPage() {
   const { user, wallet, refreshSession } = useSession();
@@ -39,10 +43,10 @@ export default function WalletPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Unable to add credits");
+        throw new Error(data.error ?? "Unable to update balance");
       }
 
-      setNotice(`${formatCoins(amount)} free MVP credits added.`);
+      setNotice(`${formatCoins(amount)} credits added to your balance.`);
       await Promise.all([refreshSession(), refreshLedger()]);
       window.dispatchEvent(new Event("snipe-session-change"));
     } catch (error) {
@@ -58,7 +62,7 @@ export default function WalletPage() {
         <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
           <div className="rounded-lg bg-[#151515] p-6 text-white shadow-sm">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d0a02e]">
-              Wallet
+              Account balance
             </p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight md:text-6xl">
               {wallet ? formatCoins(wallet.balance) : "0"}
@@ -67,19 +71,19 @@ export default function WalletPage() {
             <p className="mt-5 leading-7 text-white/62">
               {user
                 ? `Signed in as ${user.username}.`
-                : "Sign in to activate a wallet."} Future paid
-              credit packs will live here; for the MVP, these top-ups are free.
+                : "Sign in to activate your account balance."} Manage your
+              available balance here and keep enough liquidity for the next lot.
             </p>
           </div>
 
           <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-black/10 md:p-6">
-            <h2 className="text-2xl font-semibold">Add free credits</h2>
+            <h2 className="text-2xl font-semibold">Increase balance</h2>
             <p className="mt-2 text-[#5f6f80]">
-              Use these packs to keep testing bids and buyouts before real
-              payments exist.
+              Increase your available balance before placing larger bids or
+              taking a lot off the board.
             </p>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {creditPacks.map((amount) => (
+              {balanceIncrements.map((amount) => (
                 <button
                   key={amount}
                   onClick={() => addCredits(amount)}
@@ -90,7 +94,7 @@ export default function WalletPage() {
                     +{formatCoins(amount)}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-[#8a6a20]">
-                    Free MVP credit pack
+                    Balance increment
                   </p>
                 </button>
               ))}
@@ -118,8 +122,10 @@ export default function WalletPage() {
                   className="flex flex-col gap-2 rounded-md bg-black/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <p className="font-semibold">{entry.type}</p>
-                    <p className="text-sm text-[#5f6f80]">{entry.description}</p>
+                    <p className="font-semibold">{ledgerTypeLabel(entry.type)}</p>
+                    <p className="text-sm text-[#5f6f80]">
+                      {ledgerDescription(entry.description)}
+                    </p>
                   </div>
                   <span
                     className={

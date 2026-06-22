@@ -127,3 +127,29 @@ export function watcherCount(id: string) {
 export function estimateValue(auction: Auction) {
   return Math.round((auction.buyoutPrice * 1.18) / 1_000) * 1_000;
 }
+
+export function ledgerTypeLabel(type: string) {
+  const labels: Record<string, string> = {
+    ACCOUNT_CREDIT_ADJUSTMENT: "Account credit",
+    BID_HOLD: "Bid reserve",
+    BUYOUT_PURCHASE: "Buyout purchase",
+    FREE_CREDIT_TOP_UP: "Account credit",
+    OUTBID_REFUND: "Outbid release",
+    SELLER_PROCEEDS: "Seller proceeds",
+    STARTING_BONUS: "Opening balance"
+  };
+
+  return labels[type] ?? titleCase(type.replaceAll("_", " "));
+}
+
+export function ledgerDescription(description: string) {
+  return description
+    .replace(/^Free MVP credit top-up:/, "Account credit adjustment:")
+    .replace(/^Starting balance$/, "Opening balance");
+}
+
+function titleCase(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}

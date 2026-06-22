@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Snipe",
-  description: "A fake-money auction marketplace for limited luxury lots"
+  description: "A private auction marketplace for limited luxury lots"
 };
 
 export const viewport: Viewport = {

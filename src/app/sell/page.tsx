@@ -43,7 +43,7 @@ export default function SellPage() {
     }
 
     if (file.size > 800_000) {
-      setError("Keep MVP image uploads under 800 KB.");
+      setError("Keep image uploads under 800 KB.");
       return;
     }
 
@@ -105,8 +105,8 @@ export default function SellPage() {
               Sell a luxury lot
             </h1>
             <p className="mt-4 max-w-xl text-lg leading-8 text-[#5f6f80]">
-              Create a one-hour listing with a strong image, a clear starting
-              price, and a buyout that makes bidders decide fast.
+              Create a one-hour listing with a strong image, a clear opening
+              price, and a buyout that sets the tone.
             </p>
 
             <div className="mt-8 overflow-hidden rounded-lg bg-[#151515] text-white shadow-sm">
@@ -126,7 +126,7 @@ export default function SellPage() {
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-white/68">
                   {listing.description ||
-                    "Add a short description that makes the item feel rare."}
+                    "Add the details that make the lot worth attention."}
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <PreviewMetric
@@ -204,7 +204,7 @@ export default function SellPage() {
                   onChange={(event) =>
                     setListing({ ...listing, description: event.target.value })
                   }
-                  placeholder="What makes this lot feel rare?"
+                  placeholder="Condition, provenance, upgrades, location, or anything buyers should know."
                   rows={4}
                   className="rounded-md border border-black/15 bg-white px-3 py-3 outline-none focus:border-[#c99a2e]"
                 />

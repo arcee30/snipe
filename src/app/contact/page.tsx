@@ -65,9 +65,9 @@ export default function ContactPage() {
               Talk to the Snipe desk.
             </h1>
             <p className="mt-6 text-lg leading-8 text-white/72">
-              Send auction issues, account questions, feedback, or partnership
-              notes. Your message is routed to the Snipe inbox with your email
-              attached for a direct reply.
+              Send account questions, listing concerns, feedback, or
+              partnership notes. Your message goes straight to the Snipe inbox
+              with your reply address attached.
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
               <ContactMetric value="24h" label="target reply window" />
@@ -130,7 +130,7 @@ export default function ContactPage() {
               <textarea
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
-                placeholder="Tell us what happened or what you want to build with Snipe."
+                placeholder="Share the details we should know."
                 rows={7}
                 className="resize-y rounded-md border border-black/15 px-4 py-3 text-base font-medium leading-7 outline-none transition focus:border-[#c99a2e]"
               />
@@ -162,7 +162,7 @@ export default function ContactPage() {
         <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
           <InfoCard
             title="Auction support"
-            body="Send the lot name, bid amount, and what you expected to happen."
+            body="Include the lot name, bid amount, and the outcome you saw."
           />
           <InfoCard
             title="Account questions"
@@ -170,7 +170,7 @@ export default function ContactPage() {
           />
           <InfoCard
             title="Business notes"
-            body="Partnerships, asset supply, and product feedback can all start here."
+            body="Partnerships, inventory, and product feedback can all start here."
           />
         </div>
       </section>

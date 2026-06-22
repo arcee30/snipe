@@ -57,9 +57,9 @@ export default function PortfolioPage() {
                 Portfolio
               </h1>
               <p className="mt-3 max-w-2xl leading-7 text-white/68">
-                Your won lots become owned assets here. Track estimated value,
-                category exposure, and whether your collection can break into
-                the Snipe top 10.
+                Acquired lots are tracked here as portfolio assets. Follow
+                estimated value, category exposure, and your position against
+                the top collectors.
               </p>
 
               <div className="mt-8">
@@ -92,8 +92,8 @@ export default function PortfolioPage() {
               <div>
                 <h2 className="text-2xl font-semibold">Top collectors</h2>
                 <p className="mt-2 text-sm leading-6 text-[#5f6f80]">
-                  Static bot portfolios set the market. If your collection
-                  clears one, your rank moves in live.
+                  The board ranks the largest portfolios by estimated value. If
+                  your collection clears the threshold, your name moves in.
                 </p>
               </div>
               <button
@@ -136,7 +136,7 @@ export default function PortfolioPage() {
           <SummaryCard
             label="Acquisition cost"
             value={formatCoins(portfolio?.totalSpent ?? 0)}
-            text="Total paid across settled winning auctions."
+            text="Total paid across settled acquisitions."
           />
           <SummaryCard
             label="Strongest category"
@@ -144,7 +144,7 @@ export default function PortfolioPage() {
             text={
               topCategory
                 ? `${formatCoins(topCategory.worth)} estimated value across ${topCategory.count} lots.`
-                : "Win assets to build category exposure."
+                : "Acquire assets to build category exposure."
             }
           />
           <SummaryCard
@@ -166,7 +166,7 @@ export default function PortfolioPage() {
                   Owned assets
                 </h2>
                 <p className="mt-2 text-[#5f6f80]">
-                  Won buyouts and settled high bids are displayed as your collection.
+                  Settled wins and buyouts are displayed as your collection.
                 </p>
               </div>
               <a
@@ -188,9 +188,9 @@ export default function PortfolioPage() {
                 <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-black/10">
                   <h3 className="text-2xl font-semibold">No assets owned yet</h3>
                   <p className="mt-3 max-w-xl leading-7 text-[#5f6f80]">
-                    Buy out an auction or hold the leading bid until it closes.
-                    Once it settles, the lot moves here and starts counting
-                    toward your portfolio worth.
+                    Secure a lot outright or hold the leading bid until close.
+                    Once it settles, it moves here and begins counting toward
+                    portfolio value.
                   </p>
                   <a
                     href="/auctions"

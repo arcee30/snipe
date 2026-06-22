@@ -7,17 +7,17 @@ const marketItems = [
   {
     title: "Sunset marina yachts",
     image: "/auction-assets/boat.png",
-    text: "Buyouts move fast when a rare water lot drops."
+    text: "A clean exit price for buyers who would rather not wait."
   },
   {
     title: "Private coastal homes",
     image: "/auction-assets/house.png",
-    text: "One-hour windows keep every property decision sharp."
+    text: "Short listing windows keep attention on the highest-quality lots."
   },
   {
     title: "Collector cars",
     image: "/auction-assets/car.png",
-    text: "Watch the market, time the bid, take the keys."
+    text: "Follow the bid, read the room, and move before the market does."
   }
 ];
 
@@ -40,19 +40,19 @@ export default function Home() {
           <div className="flex flex-1 items-center py-14">
             <div className="max-w-3xl">
               <h1 className="max-w-full text-[2.8rem] font-semibold leading-[0.95] tracking-tight sm:text-5xl md:text-7xl">
-                Luxury auctions that vanish if you hesitate.
+                Private auctions for assets worth watching.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-white/78 md:text-xl">
-                Snipe is a fake-money auction house where rare cars, yachts,
-                homes, and trophy assets rotate through limited drops. Bid live,
-                buy out instantly, or watch the lot disappear.
+                Snipe is a live auction house for high-value cars, yachts,
+                homes, and collectible assets. Listings rotate on a strict
+                clock, so every bid carries weight.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={user ? "/auctions" : "/signin"}
                   className="inline-flex items-center justify-center rounded-md bg-[#d0a02e] px-6 py-3 text-sm font-bold text-[#151515] shadow-lg shadow-black/20 transition hover:bg-[#e4b645]"
                 >
-                  {user ? "Go to auctions" : "Sign up and start bidding"}
+                  {user ? "Open the market" : "Create your account"}
                 </a>
                 <a
                   href="#about"
@@ -65,9 +65,9 @@ export default function Home() {
           </div>
 
           <div className="grid gap-3 pb-8 text-sm text-white/80 md:grid-cols-3">
-            <ProofPoint value="1,000,000" label="starter coins for every account" />
-            <ProofPoint value="1 hour" label="fixed countdown on each listing" />
-            <ProofPoint value="Rotating" label="limited lots from bot sellers" />
+            <ProofPoint value="1,000,000" label="opening balance" />
+            <ProofPoint value="1 hour" label="standard listing window" />
+            <ProofPoint value="Curated" label="limited active inventory" />
           </div>
         </div>
       </section>
@@ -76,27 +76,27 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             <h2 className="max-w-2xl text-4xl font-semibold tracking-tight md:text-6xl">
-              The pressure of a real market, without real money.
+              A market built around timing and restraint.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-8 text-[#5f6f80]">
-              Every account starts with a million coins. The market is stocked
-              with premium dummy listings, so you can learn when to wait, when
-              to bid, and when to buy out before someone else does.
+              Every account starts with a meaningful balance and a live market
+              of premium listings. The best outcomes come from knowing when to
+              wait, when to press, and when to close.
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3 lg:pt-20">
             <Feature
               title="Scarcity"
-              body="Only a limited set is live at once, so each lot feels worth watching."
+              body="Only a small set is live at once, so attention stays focused."
             />
             <Feature
               title="Momentum"
-              body="Countdowns and buyouts create fast decisions without complex payments."
+              body="Countdowns and buyouts make hesitation part of the price."
             />
             <Feature
-              title="Replay value"
-              body="Bot listings refresh the market with new luxury combinations."
+              title="Market rhythm"
+              body="Fresh inventory keeps the board moving without flooding it."
             />
           </div>
         </div>
@@ -107,11 +107,11 @@ export default function Home() {
           <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight md:text-5xl">
-                Today's temptation board
+                Today's board
               </h2>
               <p className="mt-3 max-w-2xl text-[#5f6f80]">
-                A small rotating market makes the homepage promise simple:
-                check the board today, because the same lot may not be there tomorrow.
+                A tighter market is easier to read and harder to ignore. What
+                is available now may not be there on the next refresh.
               </p>
             </div>
             <a
@@ -151,11 +151,11 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col gap-6 border-y border-white/15 py-12 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="max-w-2xl text-4xl font-semibold tracking-tight">
-              Start with fake coins. Leave with a sharper instinct.
+              Build a portfolio one decision at a time.
             </h2>
             <p className="mt-4 max-w-2xl leading-7 text-white/68">
-              Create an account, claim your starter credits, and step into the
-              auction room before the next rare lot rotates away.
+              Create an account, review the current board, and decide which
+              assets are worth pursuing before the window closes.
             </p>
           </div>
           <a

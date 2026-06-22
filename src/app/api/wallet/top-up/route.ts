@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   const amount = Number(body.amount);
 
   if (!ALLOWED_AMOUNTS.has(amount)) {
-    return NextResponse.json({ error: "Choose a valid credit pack" }, { status: 400 });
+    return NextResponse.json({ error: "Choose a valid balance increment" }, { status: 400 });
   }
 
   const wallet = await prisma.wallet.update({
@@ -28,8 +28,8 @@ export async function POST(request: Request) {
         create: {
           userId,
           amount,
-          type: "FREE_CREDIT_TOP_UP",
-          description: `Free MVP credit top-up: ${amount} credits`
+          type: "ACCOUNT_CREDIT_ADJUSTMENT",
+          description: `Account credit adjustment: ${amount} credits`
         }
       }
     }

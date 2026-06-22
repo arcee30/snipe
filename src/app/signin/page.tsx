@@ -62,16 +62,17 @@ function SignInContent() {
       <div className="relative z-10 mx-auto grid max-w-7xl gap-10 py-10 lg:grid-cols-[0.95fr_0.8fr] lg:items-center">
         <div className="max-w-3xl">
           <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
-            Enter the room before the lot disappears.
+            Step into the auction room.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72">
-            Create a real Snipe account, claim your starter credits, and build
-            a portfolio of rare cars, homes, yachts, aircraft, and trophy assets.
+            Create your Snipe account, receive an opening balance, and begin
+            building a portfolio across cars, homes, yachts, aircraft, and
+            trophy assets.
           </p>
           <div className="mt-8 grid max-w-2xl gap-3 md:grid-cols-3">
-            <AuthProof value="1M" label="starter credits" />
+            <AuthProof value="1M" label="opening balance" />
             <AuthProof value="1 hour" label="auction windows" />
-            <AuthProof value="Top 10" label="portfolio chase" />
+            <AuthProof value="Top 10" label="collector ranking" />
           </div>
         </div>
 
@@ -117,7 +118,7 @@ function SignInContent() {
                 <input
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
-                  placeholder="Your auction name"
+                  placeholder="Your display name"
                   className="rounded-md border border-black/15 px-4 py-3 text-base font-medium outline-none focus:border-[#c99a2e]"
                 />
               </label>

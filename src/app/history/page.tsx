@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { PageFrame } from "@/components/PageFrame";
 import {
   auctionImage,
-  formatCoins
+  formatCoins,
+  ledgerDescription,
+  ledgerTypeLabel
 } from "@/lib/auction-ui";
 import type { Auction, LedgerEntry } from "@/lib/auction-ui";
 
@@ -40,7 +42,8 @@ export default function HistoryPage() {
             Auction history
           </h1>
           <p className="mt-3 max-w-2xl text-[#5f6f80]">
-            Review what you won, lost, sold, and where your credits moved.
+            Review completed listings, acquisition outcomes, and account
+            movements in one place.
           </p>
         </div>
 
@@ -115,8 +118,8 @@ export default function HistoryPage() {
               ))
             ) : (
               <p className="rounded-lg bg-white p-5 text-[#5f6f80] shadow-sm ring-1 ring-black/10">
-                No completed auctions yet. Bid on a live lot or buy one out to
-                start building history.
+                No completed listings yet. Place a bid or secure a lot outright
+                to begin building your record.
               </p>
             )}
           </div>
@@ -132,11 +135,11 @@ export default function HistoryPage() {
                   className="flex flex-col gap-2 rounded-md bg-black/[0.03] px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <p className="font-semibold">{entry.type}</p>
+                    <p className="font-semibold">{ledgerTypeLabel(entry.type)}</p>
                     <p className="text-sm text-[#5f6f80]">
                       {entry.auction?.item
-                        ? `${entry.description} | ${entry.auction.item.title}`
-                        : entry.description}
+                        ? `${ledgerDescription(entry.description)} | ${entry.auction.item.title}`
+                        : ledgerDescription(entry.description)}
                     </p>
                   </div>
                   <span

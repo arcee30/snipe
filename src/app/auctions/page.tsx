@@ -47,7 +47,7 @@ export default function AuctionsPage() {
       throw new Error(data.error ?? "Unable to place bid");
     }
 
-    setNotice("Bid placed. Your credits are held until you are outbid or the auction closes.");
+    setNotice("Bid placed. The amount is reserved until you are outbid or the listing closes.");
     await Promise.all([refreshAuctions(), refreshSession()]);
     window.dispatchEvent(new Event("snipe-session-change"));
   }
@@ -62,7 +62,7 @@ export default function AuctionsPage() {
       throw new Error(data.error ?? "Unable to buy out auction");
     }
 
-    setNotice("Buyout complete. The lot is now in your auction history.");
+    setNotice("Buyout complete. The lot has moved into your records.");
     await Promise.all([refreshAuctions(), refreshSession()]);
     window.dispatchEvent(new Event("snipe-session-change"));
   }
@@ -76,8 +76,8 @@ export default function AuctionsPage() {
               Live auctions
             </h1>
             <p className="mt-3 max-w-2xl text-[#5f6f80]">
-              Limited drops from bot sellers and players. Bid above the current
-              price, or buy out before someone else takes the lot.
+              A live board of limited listings. Raise the current bid, or secure
+              the lot immediately at the buyout price.
             </p>
           </div>
           <button

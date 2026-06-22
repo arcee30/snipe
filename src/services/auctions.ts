@@ -81,7 +81,7 @@ const BOT_AUCTION_TEMPLATES = [
   {
     title: "Electric Hyper Saloon",
     category: "car",
-    description: "A silent luxury rocket with rare launch trim.",
+    description: "An electric performance saloon with limited launch trim.",
     startingPrice: 260_000,
     buyoutPrice: 540_000,
     imageUrl: IMAGE.redHypercar
