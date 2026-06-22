@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { LogoMark } from "@/components/LogoMark";
 import { formatCoins } from "@/lib/auction-ui";
@@ -9,6 +9,7 @@ import type { User, Wallet } from "@/lib/auction-ui";
 const navItems = [
   { href: "/auctions", label: "Auctions" },
   { href: "/sell", label: "Sell" },
+  { href: "/portfolio", label: "Portfolio" },
   { href: "/wallet", label: "Wallet" },
   { href: "/history", label: "History" },
   { href: "/#contact", label: "Contact" }
@@ -18,10 +19,7 @@ export function AppNav() {
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
-  const [username, setUsername] = useState("");
-  const [showSignin, setShowSignin] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
-  const [notice, setNotice] = useState("");
 
   async function refreshSession() {
     const response = await fetch("/api/me");
@@ -44,38 +42,8 @@ export function AppNav() {
     return () => window.removeEventListener("snipe-session-change", refresh);
   }, []);
 
-  async function submitUsername(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsBusy(true);
-    setNotice("");
-
-    try {
-      const response = await fetch("/api/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username })
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Unable to sign in");
-      }
-
-      setUser(data.user);
-      setWallet(data.wallet);
-      setUsername("");
-      setShowSignin(false);
-      window.dispatchEvent(new Event("snipe-session-change"));
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Something went wrong");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
   async function signOut() {
     setIsBusy(true);
-    setNotice("");
 
     try {
       const response = await fetch("/api/session", { method: "DELETE" });
@@ -88,8 +56,6 @@ export function AppNav() {
       setUser(null);
       setWallet(null);
       window.dispatchEvent(new Event("snipe-session-change"));
-    } catch (error) {
-      setNotice(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setIsBusy(false);
     }
@@ -142,42 +108,13 @@ export function AppNav() {
               </button>
             </div>
           ) : (
-            <div className="relative pl-0 md:pl-2">
-              <button
-                onClick={() => setShowSignin((current) => !current)}
-                className="rounded-md bg-[#d0a02e] px-4 py-2 text-sm font-bold text-[#151515] transition hover:bg-[#e4b645]"
+            <div className="pl-0 md:pl-2">
+              <a
+                href="/signin"
+                className="inline-flex rounded-md bg-[#d0a02e] px-4 py-2 text-sm font-bold text-[#151515] transition hover:bg-[#e4b645]"
               >
                 Sign in
-              </button>
-              {showSignin ? (
-                <form
-                  onSubmit={submitUsername}
-                  className="absolute right-0 top-12 w-72 rounded-lg border border-black/10 bg-white p-3 text-[#151515] shadow-xl"
-                >
-                  <label className="text-xs font-bold uppercase tracking-[0.14em] text-[#5f6f80]">
-                    Username
-                  </label>
-                  <div className="mt-2 flex gap-2">
-                    <input
-                      value={username}
-                      onChange={(event) => setUsername(event.target.value)}
-                      placeholder="choose a name"
-                      className="min-w-0 flex-1 rounded-md border border-black/15 px-3 py-2 text-sm outline-none focus:border-[#c99a2e]"
-                    />
-                    <button
-                      disabled={isBusy}
-                      className="rounded-md bg-[#151515] px-3 py-2 text-sm font-bold text-white disabled:opacity-50"
-                    >
-                      Enter
-                    </button>
-                  </div>
-                  {notice ? (
-                    <p className="mt-2 text-xs font-semibold text-[#a33131]">
-                      {notice}
-                    </p>
-                  ) : null}
-                </form>
-              ) : null}
+              </a>
             </div>
           )}
         </div>

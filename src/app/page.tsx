@@ -49,7 +49,7 @@ export default function Home() {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a
-                  href="/auctions"
+                  href={user ? "/auctions" : "/signin"}
                   className="inline-flex items-center justify-center rounded-md bg-[#d0a02e] px-6 py-3 text-sm font-bold text-[#151515] shadow-lg shadow-black/20 transition hover:bg-[#e4b645]"
                 >
                   {user ? "Go to auctions" : "Sign up and start bidding"}
@@ -154,12 +154,12 @@ export default function Home() {
               Start with fake coins. Leave with a sharper instinct.
             </h2>
             <p className="mt-4 max-w-2xl leading-7 text-white/68">
-              No password, no payment flow, no friction. Pick a username and
-              step into the auction room.
+              Create an account, claim your starter credits, and step into the
+              auction room before the next rare lot rotates away.
             </p>
           </div>
           <a
-            href="/auctions"
+            href={user ? "/auctions" : "/signin"}
             className="inline-flex shrink-0 items-center justify-center rounded-md bg-[#d0a02e] px-6 py-3 text-sm font-bold text-[#151515]"
           >
             {user ? "Return to auctions" : "Create your account"}

@@ -8,10 +8,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  isBot     Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String?  @unique
+  displayName  String?
+  passwordHash String?
+  authProvider String   @default("username")
+  googleId     String?  @unique
+  isBot        Boolean  @default(false)
+  createdAt    DateTime @default(now())
 
   wallet          Wallet?
   items           Item[]        @relation("UserItems")

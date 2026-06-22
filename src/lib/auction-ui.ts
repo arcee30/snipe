@@ -1,6 +1,8 @@
 export type User = {
   id: string;
   username: string;
+  email?: string | null;
+  displayName?: string | null;
 };
 
 export type Wallet = {
@@ -39,6 +41,27 @@ export type Auction = {
   };
   seller: User;
   highestBidder: User | null;
+};
+
+export type PortfolioAsset = {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  imageUrl?: string | null;
+  acquiredFor: number;
+  estimatedValue: number;
+  appreciation: number;
+  acquiredAt: string;
+  seller: User;
+};
+
+export type PortfolioLeader = {
+  username: string;
+  displayName?: string | null;
+  totalWorth: number;
+  assetCount: number;
+  isCurrentUser?: boolean;
 };
 
 export function formatCoins(value: number) {

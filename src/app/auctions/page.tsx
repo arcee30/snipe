@@ -230,7 +230,7 @@ function AuctionCard({
 
         {!isSignedIn ? (
           <p className="mt-3 text-sm font-semibold text-[#8a6a20]">
-            Sign in from the navbar to bid.
+            Sign in to bid.
           </p>
         ) : null}
         {error ? <p className="mt-3 text-sm font-semibold text-[#a33131]">{error}</p> : null}
