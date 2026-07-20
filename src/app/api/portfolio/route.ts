@@ -12,16 +12,16 @@ type LeaderboardEntry = {
 };
 
 const BOT_LEADERS: LeaderboardEntry[] = [
-  { username: "VaultKing", totalWorth: 18_400_000, assetCount: 11 },
-  { username: "MarinaOracle", totalWorth: 14_250_000, assetCount: 9 },
-  { username: "SkylineAce", totalWorth: 12_900_000, assetCount: 8 },
-  { username: "RotorReserve", totalWorth: 10_850_000, assetCount: 7 },
-  { username: "ApexCollector", totalWorth: 9_740_000, assetCount: 8 },
-  { username: "GlassEstate", totalWorth: 8_330_000, assetCount: 6 },
-  { username: "DeepwaterBid", totalWorth: 7_910_000, assetCount: 5 },
-  { username: "CarbonLedger", totalWorth: 6_820_000, assetCount: 7 },
-  { username: "HangarPrime", totalWorth: 5_760_000, assetCount: 4 },
-  { username: "CoastlineFund", totalWorth: 4_940_000, assetCount: 5 }
+  { username: "SovereignVault", totalWorth: 12_800_000_000, assetCount: 42 },
+  { username: "ApexReserve", totalWorth: 10_950_000_000, assetCount: 38 },
+  { username: "MarinaOracle", totalWorth: 8_700_000_000, assetCount: 31 },
+  { username: "SkylineSyndicate", totalWorth: 6_450_000_000, assetCount: 27 },
+  { username: "DeepwaterBid", totalWorth: 4_900_000_000, assetCount: 24 },
+  { username: "HangarPrime", totalWorth: 3_650_000_000, assetCount: 21 },
+  { username: "VolcanicEstate", totalWorth: 2_840_000_000, assetCount: 18 },
+  { username: "CarbonLedger", totalWorth: 1_920_000_000, assetCount: 17 },
+  { username: "VaultKing", totalWorth: 1_250_000_000, assetCount: 14 },
+  { username: "CoastlineFund", totalWorth: 860_000_000, assetCount: 12 }
 ];
 
 export async function GET() {
@@ -47,7 +47,11 @@ export async function GET() {
     prisma.auction.findMany({
       where: {
         status: "SETTLED",
-        highestBidderId: userId
+        highestBidderId: userId,
+        OR: [
+          { market: "OVERWORLD" },
+          { market: "UNDERWORLD", transferStatus: "CLEANED" }
+        ]
       },
       orderBy: { updatedAt: "desc" },
       include: {
@@ -58,10 +62,14 @@ export async function GET() {
   ]);
 
   const assets = auctions.map((auction) => {
-    const estimatedValue = estimatePortfolioValue(
+    const marketEstimate = estimatePortfolioValue(
       auction.buyoutPrice,
       auction.currentPrice
     );
+    const estimatedValue =
+      auction.market === "UNDERWORLD"
+        ? auction.item.estimatedCleanValue ?? marketEstimate
+        : marketEstimate;
 
     return {
       id: auction.id,
@@ -73,6 +81,8 @@ export async function GET() {
       estimatedValue,
       appreciation: estimatedValue - auction.currentPrice,
       acquiredAt: auction.updatedAt,
+      market: auction.market,
+      transferStatus: auction.transferStatus,
       seller: {
         id: auction.seller.id,
         username: auction.seller.username,

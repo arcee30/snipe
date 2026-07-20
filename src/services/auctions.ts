@@ -2,8 +2,15 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { serviceError } from "@/lib/auction-errors";
 import { assertPositiveCoins } from "@/lib/money";
+import {
+  notifyAuctionClosed,
+  notifyBuyoutSettled,
+  notifyOutbid
+} from "@/services/notifications";
 
 type Tx = Prisma.TransactionClient;
+
+export type Market = "OVERWORLD" | "UNDERWORLD";
 
 export type CreateAuctionInput = {
   title: string;
@@ -12,10 +19,14 @@ export type CreateAuctionInput = {
   imageUrl?: string;
   startingPrice: number;
   buyoutPrice: number;
+  market?: Market;
+  estimatedCleanValue?: number;
   endsAt?: Date;
 };
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
+const UNDERWORLD_MIN_DURATION_MS = 18 * 60 * 1000;
+const UNDERWORLD_DURATION_SPREAD_MS = 27 * 60 * 1000;
 const BOT_STARTING_BALANCE = 1_000_000;
 const BOT_USERNAMES = [
   "VelocityVault",
@@ -27,6 +38,18 @@ const BOT_USERNAMES = [
   "EstateCircuit",
   "NightfallBids"
 ];
+const UNDERWORLD_BOT_ALIASES = [
+  "RedLedger",
+  "CipherYard",
+  "BlackDock",
+  "VantaRoom",
+  "NullBroker",
+  "GhostTitle",
+  "AshCircuit",
+  "IronVeil",
+  "NocturneDesk",
+  "CrimsonLot"
+];
 
 type BotAuctionTemplate = {
   title: string;
@@ -34,6 +57,7 @@ type BotAuctionTemplate = {
   description: string;
   startingPrice: number;
   buyoutPrice: number;
+  estimatedCleanValue?: number;
   imageUrl: string;
 };
 
@@ -42,11 +66,17 @@ const IMAGE = {
   redHypercar: "/auction-assets/generated/hypercar-red-showroom.png",
   classicCoupe: "/auction-assets/generated/classic-silver-coupe.png",
   yachtMarina: "/auction-assets/boat.png",
+  solarisYacht: "/auction-assets/generated/refresh-2026/solaris-48-sport-yacht.jpg",
+  azureFlybridge: "/auction-assets/generated/refresh-2026/azure-62-flybridge.jpg",
+  aureliaCatamaran: "/auction-assets/generated/refresh-2026/aurelia-catamaran-share.jpg",
+  marinaBerth: "/auction-assets/generated/refresh-2026/marina-berth-contract.jpg",
   racingYacht: "/auction-assets/generated/offshore-racing-yacht.png",
   glassVilla: "/auction-assets/house.png",
   islandVilla: "/auction-assets/generated/island-glass-villa.png",
   penthouse: "/auction-assets/generated/skyscraper-penthouse.png",
   jet: "/auction-assets/generated/private-jet-hangar.png",
+  longRangeJet: "/auction-assets/generated/refresh-2026/long-range-private-jet.jpg",
+  privateHangar: "/auction-assets/generated/refresh-2026/private-hangar-lease.jpg",
   helicopter: "/auction-assets/generated/helicopter-rooftop.png",
   submarine: "/auction-assets/generated/private-submarine.png",
   collectorVault: "/auction-assets/generated/collector-vault.png",
@@ -159,7 +189,7 @@ const BOT_AUCTION_TEMPLATES = [
     description: "A twin-engine sport yacht with upgraded navigation systems.",
     startingPrice: 260_000,
     buyoutPrice: 620_000,
-    imageUrl: IMAGE.yachtMarina
+    imageUrl: IMAGE.solarisYacht
   },
   {
     title: "Azure 62 Flybridge",
@@ -167,7 +197,7 @@ const BOT_AUCTION_TEMPLATES = [
     description: "A long-range flybridge cruiser with entertainment deck.",
     startingPrice: 610_000,
     buyoutPrice: 1_280_000,
-    imageUrl: IMAGE.yachtMarina
+    imageUrl: IMAGE.azureFlybridge
   },
   {
     title: "Bluewater Offshore 88",
@@ -183,7 +213,7 @@ const BOT_AUCTION_TEMPLATES = [
     description: "A premium fractional stake in a luxury catamaran.",
     startingPrice: 220_000,
     buyoutPrice: 510_000,
-    imageUrl: IMAGE.yachtMarina
+    imageUrl: IMAGE.aureliaCatamaran
   },
   {
     title: "Rooftop Executive Helicopter",
@@ -207,7 +237,7 @@ const BOT_AUCTION_TEMPLATES = [
     description: "A hangared intercontinental jet with premium cabin configuration.",
     startingPrice: 2_250_000,
     buyoutPrice: 5_000_000,
-    imageUrl: IMAGE.jet
+    imageUrl: IMAGE.longRangeJet
   },
   {
     title: "Private Hangar Lease",
@@ -215,7 +245,7 @@ const BOT_AUCTION_TEMPLATES = [
     description: "A premium long-term lease at a private airfield.",
     startingPrice: 310_000,
     buyoutPrice: 725_000,
-    imageUrl: IMAGE.jet
+    imageUrl: IMAGE.privateHangar
   },
   {
     title: "Marina Submersible One",
@@ -263,7 +293,7 @@ const BOT_AUCTION_TEMPLATES = [
     description: "A premium berth allocation in a sold-out marina.",
     startingPrice: 210_000,
     buyoutPrice: 460_000,
-    imageUrl: IMAGE.yachtMarina
+    imageUrl: IMAGE.marinaBerth
   },
   {
     title: "Alpine Silver Grand Tourer",
@@ -667,9 +697,292 @@ const BOT_AUCTION_TEMPLATES = [
   }
 ] satisfies BotAuctionTemplate[];
 
+const UNDERWORLD_AUCTION_TEMPLATES = [
+  {
+    title: "Unregistered Alpine Grand Tourer",
+    category: "car",
+    description: "A silver grand tourer with missing papers and a seller who wants speed.",
+    startingPrice: 840_000,
+    buyoutPrice: 1_260_000,
+    estimatedCleanValue: 2_800_000,
+    imageUrl: luxury2026Image("vintage-silver-grand-tourer")
+  },
+  {
+    title: "Cold Storage Armored SUV",
+    category: "car",
+    description: "Armored executive transport held off-book in a private garage.",
+    startingPrice: 690_000,
+    buyoutPrice: 960_000,
+    estimatedCleanValue: 2_400_000,
+    imageUrl: luxury2026Image("armored-luxury-suv")
+  },
+  {
+    title: "Emerald Works Racer Shell",
+    category: "car",
+    description: "A museum-grade racing chassis with quiet provenance and fast export terms.",
+    startingPrice: 2_250_000,
+    buyoutPrice: 3_375_000,
+    estimatedCleanValue: 7_500_000,
+    imageUrl: luxury2026Image("emerald-classic-racing-car")
+  },
+  {
+    title: "White Arc Keyless Hypercar",
+    category: "car",
+    description: "Launch-spec electric hypercar offered below board value, transfer discreet.",
+    startingPrice: 1_260_000,
+    buyoutPrice: 1_680_000,
+    estimatedCleanValue: 4_200_000,
+    imageUrl: luxury2026Image("white-electric-hypercar")
+  },
+  {
+    title: "Aurum Concept Bike Crate",
+    category: "motorcycle",
+    description: "A gold-accented concept motorcycle moving as a sealed crate lot.",
+    startingPrice: 255_000,
+    buyoutPrice: 340_000,
+    estimatedCleanValue: 850_000,
+    imageUrl: luxury2026Image("gold-concept-motorcycle")
+  },
+  {
+    title: "Carbon Street Superbike",
+    category: "motorcycle",
+    description: "Carbon superbike with altered registration history and a clean visual profile.",
+    startingPrice: 135_000,
+    buyoutPrice: 180_000,
+    estimatedCleanValue: 450_000,
+    imageUrl: luxury2026Image("carbon-fiber-superbike")
+  },
+  {
+    title: "Bespoke Speedboat Hull",
+    category: "boat",
+    description: "Electric speedboat with identifiers scrubbed from the market packet.",
+    startingPrice: 600_000,
+    buyoutPrice: 800_000,
+    estimatedCleanValue: 2_000_000,
+    imageUrl: luxury2026Image("bespoke-electric-speedboat")
+  },
+  {
+    title: "Classic Runabout Without Papers",
+    category: "boat",
+    description: "Wooden lake runabout with a quiet dock handoff and no marina record.",
+    startingPrice: 540_000,
+    buyoutPrice: 720_000,
+    estimatedCleanValue: 1_800_000,
+    imageUrl: luxury2026Image("classic-wooden-lake-boat")
+  },
+  {
+    title: "Resort Seaplane Off Manifest",
+    category: "aircraft",
+    description: "A luxury seaplane offered under urgent transfer terms and discounted paperwork.",
+    startingPrice: 1_330_000,
+    buyoutPrice: 1_710_000,
+    estimatedCleanValue: 3_800_000,
+    imageUrl: luxury2026Image("tropical-luxury-seaplane")
+  },
+  {
+    title: "Vault Watch Collection",
+    category: "collectible",
+    description: "Rare mechanical watches from a private vault, provenance unavailable until clean-up.",
+    startingPrice: 3_600_000,
+    buyoutPrice: 5_400_000,
+    estimatedCleanValue: 12_000_000,
+    imageUrl: luxury2026Image("mechanical-watch-collection")
+  },
+  {
+    title: "Midnight Coast Coupe Transfer",
+    category: "car",
+    description: "Deep-blue grand tourer moving through a private coastal handoff.",
+    startingPrice: 385_000,
+    buyoutPrice: 495_000,
+    estimatedCleanValue: 1_100_000,
+    imageUrl: luxury2026Image("midnight-blue-luxury-coupe")
+  },
+  {
+    title: "Mediterranean Cabriolet Papers Pending",
+    category: "car",
+    description: "Restored open-top classic offered before its registry trail catches up.",
+    startingPrice: 735_000,
+    buyoutPrice: 945_000,
+    estimatedCleanValue: 2_100_000,
+    imageUrl: luxury2026Image("mediterranean-1960s-convertible")
+  },
+  {
+    title: "Formula Chassis Off Trailer",
+    category: "car",
+    description: "Private formula chassis sold from a silent paddock corridor.",
+    startingPrice: 1_740_000,
+    buyoutPrice: 2_610_000,
+    estimatedCleanValue: 5_800_000,
+    imageUrl: luxury2026Image("private-formula-race-car")
+  },
+  {
+    title: "Presidential Limousine Black File",
+    category: "car",
+    description: "Armored executive limousine with restricted service history.",
+    startingPrice: 1_080_000,
+    buyoutPrice: 1_620_000,
+    estimatedCleanValue: 3_600_000,
+    imageUrl: luxury2026Image("armored-presidential-limousine")
+  },
+  {
+    title: "Autonomous Pod Ghost Title",
+    category: "car",
+    description: "Futuristic lounge pod routed through a private technology broker.",
+    startingPrice: 570_000,
+    buyoutPrice: 760_000,
+    estimatedCleanValue: 1_900_000,
+    imageUrl: luxury2026Image("autonomous-luxury-pod")
+  },
+  {
+    title: "Desert Convoy Manifest Gap",
+    category: "truck",
+    description: "Luxury expedition convoy with import documents still cooling.",
+    startingPrice: 1_950_000,
+    buyoutPrice: 2_925_000,
+    estimatedCleanValue: 6_500_000,
+    imageUrl: luxury2026Image("safari-expedition-convoy")
+  },
+  {
+    title: "Aurora Explorer Cold Transfer",
+    category: "truck",
+    description: "Polar exploration vehicle sold through a remote freight channel.",
+    startingPrice: 3_000_000,
+    buyoutPrice: 4_500_000,
+    estimatedCleanValue: 10_000_000,
+    imageUrl: luxury2026Image("polar-exploration-vehicle")
+  },
+  {
+    title: "Electric Speedboat Night Dock",
+    category: "boat",
+    description: "Custom electric speedboat released from a closed marina berth.",
+    startingPrice: 700_000,
+    buyoutPrice: 900_000,
+    estimatedCleanValue: 2_000_000,
+    imageUrl: luxury2026Image("bespoke-electric-speedboat")
+  },
+  {
+    title: "Carbon Racing Sailboat Relay",
+    category: "boat",
+    description: "Ocean racing sailboat with a clean hull and unclear last port.",
+    startingPrice: 4_200_000,
+    buyoutPrice: 5_400_000,
+    estimatedCleanValue: 12_000_000,
+    imageUrl: luxury2026Image("racing-sailboat")
+  },
+  {
+    title: "Explorer Yacht Quiet Flag",
+    category: "boat",
+    description: "Solar-assisted explorer yacht priced for a fast flag reset.",
+    startingPrice: 18_000_000,
+    buyoutPrice: 27_000_000,
+    estimatedCleanValue: 60_000_000,
+    imageUrl: luxury2026Image("solar-explorer-yacht")
+  },
+  {
+    title: "Research Vessel Private Conversion",
+    category: "boat",
+    description: "Deep-sea vessel with upgraded interiors and complicated origin records.",
+    startingPrice: 36_000_000,
+    buyoutPrice: 54_000_000,
+    estimatedCleanValue: 120_000_000,
+    imageUrl: luxury2026Image("deep-sea-research-vessel")
+  },
+  {
+    title: "Rotorcraft No Tail Ledger",
+    category: "helicopter",
+    description: "Executive rotorcraft staged without a public tail-number listing.",
+    startingPrice: 875_000,
+    buyoutPrice: 1_050_000,
+    estimatedCleanValue: 2_350_000,
+    imageUrl: IMAGE.helicopter
+  },
+  {
+    title: "Vintage Prop Plane Side Hangar",
+    category: "aircraft",
+    description: "Restored propeller aircraft held outside the standard aviation registry flow.",
+    startingPrice: 1_040_000,
+    buyoutPrice: 1_300_000,
+    estimatedCleanValue: 2_600_000,
+    imageUrl: luxury2026Image("vintage-propeller-aircraft")
+  },
+  {
+    title: "Supersonic Concept Dark Allocation",
+    category: "aircraft",
+    description: "Prototype jet allocation sold before formal ownership paperwork clears.",
+    startingPrice: 54_000_000,
+    buyoutPrice: 72_000_000,
+    estimatedCleanValue: 180_000_000,
+    imageUrl: luxury2026Image("supersonic-private-jet-concept")
+  },
+  {
+    title: "Private Railcar Off Timetable",
+    category: "rail",
+    description: "Art deco railcar disconnected from its official service timetable.",
+    startingPrice: 2_520_000,
+    buyoutPrice: 3_240_000,
+    estimatedCleanValue: 7_200_000,
+    imageUrl: luxury2026Image("art-deco-private-railcar")
+  },
+  {
+    title: "Panoramic Train Suite Transfer",
+    category: "rail",
+    description: "Sleeper suite sold through a quiet rolling-stock broker.",
+    startingPrice: 1_680_000,
+    buyoutPrice: 2_160_000,
+    estimatedCleanValue: 4_800_000,
+    imageUrl: luxury2026Image("luxury-sleeper-train-suite")
+  },
+  {
+    title: "Velvet Gemstone Vault Tray",
+    category: "collectible",
+    description: "Rare stones moving in a compact vault tray with no public catalog trail.",
+    startingPrice: 6_000_000,
+    buyoutPrice: 8_000_000,
+    estimatedCleanValue: 20_000_000,
+    imageUrl: luxury2026Image("rare-gemstone-collection")
+  },
+  {
+    title: "Fossil Gallery Shadow Consignment",
+    category: "collectible",
+    description: "Museum-grade fossil display priced below clean appraisal for immediate movement.",
+    startingPrice: 13_500_000,
+    buyoutPrice: 18_000_000,
+    estimatedCleanValue: 45_000_000,
+    imageUrl: luxury2026Image("dinosaur-fossil-gallery")
+  },
+  {
+    title: "Meteorite Black Room Lot",
+    category: "collectible",
+    description: "Meteorite centerpiece with appraisal documents withheld until clean-up.",
+    startingPrice: 4_800_000,
+    buyoutPrice: 6_400_000,
+    estimatedCleanValue: 16_000_000,
+    imageUrl: luxury2026Image("meteorite-exhibition-room")
+  },
+  {
+    title: "Covered Masterworks Vault Packet",
+    category: "collectible",
+    description: "Private art-vault packet offered under strict no-preview transfer terms.",
+    startingPrice: 30_000_000,
+    buyoutPrice: 45_000_000,
+    estimatedCleanValue: 100_000_000,
+    imageUrl: luxury2026Image("private-art-vault")
+  },
+  {
+    title: "Bullion Reserve Redacted Manifest",
+    category: "collectible",
+    description: "High-security bullion room allocation with a redacted chain of custody.",
+    startingPrice: 70_000_000,
+    buyoutPrice: 90_000_000,
+    estimatedCleanValue: 200_000_000,
+    imageUrl: luxury2026Image("gold-bullion-vault")
+  }
+] satisfies BotAuctionTemplate[];
+
 export async function createAuction(userId: string, input: CreateAuctionInput) {
   assertPositiveCoins(input.startingPrice, "Starting price");
   assertPositiveCoins(input.buyoutPrice, "Buyout price");
+  const market = input.market ?? "OVERWORLD";
 
   if (input.buyoutPrice <= input.startingPrice) {
     throw serviceError(
@@ -692,6 +1005,8 @@ export async function createAuction(userId: string, input: CreateAuctionInput) {
       category: input.category,
       description: input.description.trim(),
       imageUrl: input.imageUrl?.trim() || null,
+      market,
+      estimatedCleanValue: input.estimatedCleanValue ?? input.buyoutPrice,
       createdByUserId: userId
     }
   });
@@ -703,54 +1018,67 @@ export async function createAuction(userId: string, input: CreateAuctionInput) {
       startingPrice: input.startingPrice,
       currentPrice: input.startingPrice,
       buyoutPrice: input.buyoutPrice,
+      market,
       endsAt: input.endsAt ?? new Date(Date.now() + ONE_HOUR_MS)
     },
     include: auctionInclude
   });
 }
 
-export async function listActiveAuctions() {
+export async function listActiveAuctions(market: Market = "OVERWORLD") {
   return prisma.auction.findMany({
-    where: { status: "ACTIVE" },
+    where: { status: "ACTIVE", market },
     orderBy: [{ endsAt: "asc" }, { updatedAt: "desc" }],
     include: auctionInclude
   });
 }
 
 export async function ensureBotAuctionPool({
-  targetActive = 50
-}: { targetActive?: number } = {}) {
-  const activeBotAuctions = await prisma.auction.findMany({
+  market = "OVERWORLD",
+  targetActive = market === "UNDERWORLD" ? 12 : 50
+}: { market?: Market; targetActive?: number } = {}) {
+  let activeBotAuctions = await prisma.auction.findMany({
     where: {
+      market,
       status: "ACTIVE",
       seller: {
         isBot: true
       }
     },
     include: {
-      item: true
+      item: true,
+      seller: true
     },
     orderBy: {
       createdAt: "desc"
     }
   });
 
-  await repairSeededAuctionImages(activeBotAuctions);
+  if (market === "UNDERWORLD") {
+    activeBotAuctions = await retirePublicAliasesFromUnderworld(activeBotAuctions);
+  }
 
-  const missingCount = Math.max(0, targetActive - activeBotAuctions.length);
+  await repairSeededAuctionImages(activeBotAuctions, templatesForMarket(market));
+
+  if (activeBotAuctions.length > targetActive) {
+    await trimBotAuctionPool(activeBotAuctions, targetActive);
+  }
+
+  const currentActiveCount = Math.min(activeBotAuctions.length, targetActive);
+  const missingCount = Math.max(0, targetActive - currentActiveCount);
 
   if (missingCount === 0) {
     return;
   }
 
-  const bots = await ensureBotUsers();
+  const bots = await ensureBotUsers(market);
   const activeTitles = new Set(
     activeBotAuctions.map((auction) => auction.item.title)
   );
-  const templates = templatesForFill(activeTitles);
+  const templates = templatesForFill(activeTitles, market);
 
   for (let index = 0; index < missingCount; index += 1) {
-    const template = templates[index % templates.length];
+    const template: BotAuctionTemplate = templates[index % templates.length];
     const seller = bots[index % bots.length];
 
     await prisma.$transaction(async (tx) => {
@@ -760,6 +1088,8 @@ export async function ensureBotAuctionPool({
           category: template.category,
           description: template.description,
           imageUrl: template.imageUrl,
+          market,
+          estimatedCleanValue: template.estimatedCleanValue ?? template.buyoutPrice,
           createdByUserId: seller.id,
           isSeeded: true
         }
@@ -772,7 +1102,8 @@ export async function ensureBotAuctionPool({
           startingPrice: template.startingPrice,
           currentPrice: template.startingPrice,
           buyoutPrice: template.buyoutPrice,
-          endsAt: new Date(Date.now() + ONE_HOUR_MS)
+          market,
+          endsAt: new Date(Date.now() + auctionDurationMs(market))
         }
       });
     });
@@ -802,7 +1133,8 @@ export async function placeBid(
 
   return prisma.$transaction(async (tx) => {
     const auction = await tx.auction.findUnique({
-      where: { id: auctionId }
+      where: { id: auctionId },
+      include: { item: true }
     });
 
     if (!auction) {
@@ -850,6 +1182,15 @@ export async function placeBid(
       await refundBid(tx, previousBidderId, auction.currentPrice, auction.id);
     }
 
+    if (previousBidderId && previousBidderId !== userId) {
+      await notifyOutbid(tx, {
+        userId: previousBidderId,
+        auctionId: auction.id,
+        itemTitle: auction.item.title,
+        newAmount: amount
+      });
+    }
+
     await tx.wallet.update({
       where: { userId },
       data: {
@@ -890,7 +1231,8 @@ export async function placeBid(
 export async function buyOutAuction(userId: string, auctionId: string) {
   return prisma.$transaction(async (tx) => {
     const auction = await tx.auction.findUnique({
-      where: { id: auctionId }
+      where: { id: auctionId },
+      include: { item: true }
     });
 
     if (!auction) {
@@ -954,6 +1296,14 @@ export async function buyOutAuction(userId: string, auctionId: string) {
     });
 
     await creditSeller(tx, auction.sellerId, auction.buyoutPrice, auction.id);
+    await notifyBuyoutSettled(tx, {
+      auctionId: auction.id,
+      buyerId: userId,
+      sellerId: auction.sellerId,
+      previousBidderId: auction.highestBidderId,
+      itemTitle: auction.item.title,
+      amount: auction.buyoutPrice
+    });
 
     return tx.auction.update({
       where: { id: auction.id },
@@ -980,7 +1330,8 @@ export async function closeExpiredAuctions(now = new Date()) {
   for (const auction of expiredAuctions) {
     await prisma.$transaction(async (tx) => {
       const fresh = await tx.auction.findUnique({
-        where: { id: auction.id }
+        where: { id: auction.id },
+        include: { item: true }
       });
 
       if (!fresh || fresh.status !== "ACTIVE" || fresh.endsAt > now) {
@@ -996,6 +1347,13 @@ export async function closeExpiredAuctions(now = new Date()) {
       }
 
       await creditSeller(tx, fresh.sellerId, fresh.currentPrice, fresh.id);
+      await notifyAuctionClosed(tx, {
+        auctionId: fresh.id,
+        winnerId: fresh.highestBidderId,
+        sellerId: fresh.sellerId,
+        itemTitle: fresh.item.title,
+        amount: fresh.currentPrice
+      });
       await tx.auction.update({
         where: { id: fresh.id },
         data: { status: "SETTLED" }
@@ -1055,10 +1413,11 @@ const auctionInclude = {
   highestBidder: true
 } satisfies Prisma.AuctionInclude;
 
-async function ensureBotUsers() {
+async function ensureBotUsers(market: Market = "OVERWORLD") {
   const bots = [];
+  const usernames = market === "UNDERWORLD" ? UNDERWORLD_BOT_ALIASES : BOT_USERNAMES;
 
-  for (const username of BOT_USERNAMES) {
+  for (const username of usernames) {
     const user = await prisma.user.upsert({
       where: { username },
       update: { isBot: true },
@@ -1091,11 +1450,64 @@ async function ensureBotUsers() {
   return bots;
 }
 
-function shuffledTemplates() {
-  return [...BOT_AUCTION_TEMPLATES].sort(() => Math.random() - 0.5);
+async function retirePublicAliasesFromUnderworld<
+  T extends {
+    id: string;
+    highestBidderId: string | null;
+    seller: { username: string };
+  }
+>(activeBotAuctions: T[]) {
+  const aliasSet = new Set(UNDERWORLD_BOT_ALIASES);
+  const retiring = activeBotAuctions.filter(
+    (auction) => !auction.highestBidderId && !aliasSet.has(auction.seller.username)
+  );
+
+  if (retiring.length > 0) {
+    await prisma.auction.updateMany({
+      where: {
+        id: {
+          in: retiring.map((auction) => auction.id)
+        }
+      },
+      data: {
+        status: "EXPIRED"
+      }
+    });
+  }
+
+  return activeBotAuctions.filter(
+    (auction) => !retiring.some((retired) => retired.id === auction.id)
+  );
 }
 
-function templatesForFill(activeTitles: Set<string>) {
+function auctionDurationMs(market: Market) {
+  if (market === "UNDERWORLD") {
+    return (
+      UNDERWORLD_MIN_DURATION_MS +
+      Math.floor(Math.random() * UNDERWORLD_DURATION_SPREAD_MS)
+    );
+  }
+
+  return ONE_HOUR_MS;
+}
+
+function templatesForMarket(market: Market) {
+  return market === "UNDERWORLD"
+    ? UNDERWORLD_AUCTION_TEMPLATES
+    : BOT_AUCTION_TEMPLATES;
+}
+
+function shuffledTemplates(market: Market) {
+  return [...templatesForMarket(market)].sort(() => Math.random() - 0.5);
+}
+
+function templatesForFill(activeTitles: Set<string>, market: Market) {
+  if (market === "UNDERWORLD") {
+    return shuffledTemplates(market).filter(
+      (template) => !activeTitles.has(template.title)
+    );
+  }
+
   const featuredTitles = new Set([
     "Supersonic Private Jet Concept",
     "High-Security Bullion Reserve",
@@ -1111,7 +1523,7 @@ function templatesForFill(activeTitles: Set<string>) {
   const featured = BOT_AUCTION_TEMPLATES.filter(
     (template) => featuredTitles.has(template.title) && !activeTitles.has(template.title)
   );
-  const random = shuffledTemplates().filter(
+  const random = shuffledTemplates(market).filter(
     (template) => !featuredTitles.has(template.title) && !activeTitles.has(template.title)
   );
 
@@ -1121,42 +1533,94 @@ function templatesForFill(activeTitles: Set<string>) {
 async function repairSeededAuctionImages(
   auctions: Array<{
     id: string;
+    startingPrice: number;
+    currentPrice: number;
+    buyoutPrice: number;
     highestBidderId: string | null;
-    item: { id: string; title: string; category: string; imageUrl: string | null };
-  }>
+    item: {
+      id: string;
+      title: string;
+      category: string;
+      description: string;
+      imageUrl: string | null;
+      estimatedCleanValue: number | null;
+    };
+  }>,
+  templates: readonly BotAuctionTemplate[]
 ) {
   const templatesByTitle = new Map(
-    BOT_AUCTION_TEMPLATES.map((template) => [template.title, template])
+    templates.map((template) => [template.title, template])
   );
 
   await Promise.all(
     auctions.map(async (auction) => {
       const template = templatesByTitle.get(auction.item.title);
       const imageUrl = template?.imageUrl ?? imageForCategory(auction.item.category);
+      const nextItem = {
+        category: template?.category ?? auction.item.category,
+        description: template?.description ?? auction.item.description,
+        imageUrl,
+        estimatedCleanValue: template?.estimatedCleanValue ?? template?.buyoutPrice
+      };
+      const itemNeedsRepair =
+        auction.item.category !== nextItem.category ||
+        auction.item.description !== nextItem.description ||
+        auction.item.imageUrl !== nextItem.imageUrl ||
+        (template && auction.item.estimatedCleanValue !== nextItem.estimatedCleanValue);
 
-      if (!auction.item.imageUrl || template) {
+      if (itemNeedsRepair) {
         await prisma.item.update({
           where: { id: auction.item.id },
-          data: {
-            category: template?.category ?? auction.item.category,
-            description: template?.description,
-            imageUrl
-          }
+          data: nextItem
         });
       }
 
-      if (template && !auction.highestBidderId) {
+      const auctionNeedsRepair =
+        template &&
+        !auction.highestBidderId &&
+        (auction.startingPrice !== template.startingPrice ||
+          auction.currentPrice !== template.startingPrice ||
+          auction.buyoutPrice !== template.buyoutPrice);
+
+      if (auctionNeedsRepair) {
         await prisma.auction.update({
           where: { id: auction.id },
           data: {
-            startingPrice: template.startingPrice,
-            currentPrice: template.startingPrice,
-            buyoutPrice: template.buyoutPrice
+            startingPrice: template!.startingPrice,
+            currentPrice: template!.startingPrice,
+            buyoutPrice: template!.buyoutPrice
           }
         });
       }
     })
   );
+}
+
+async function trimBotAuctionPool(
+  activeBotAuctions: Array<{
+    id: string;
+    highestBidderId: string | null;
+  }>,
+  targetActive: number
+) {
+  const overflow = activeBotAuctions
+    .slice(targetActive)
+    .filter((auction) => !auction.highestBidderId);
+
+  if (overflow.length === 0) {
+    return;
+  }
+
+  await prisma.auction.updateMany({
+    where: {
+      id: {
+        in: overflow.map((auction) => auction.id)
+      }
+    },
+    data: {
+      status: "EXPIRED"
+    }
+  });
 }
 
 function imageForCategory(category: string) {
@@ -1166,9 +1630,13 @@ function imageForCategory(category: string) {
     boat: IMAGE.racingYacht,
     building: IMAGE.penthouse,
     car: IMAGE.redHypercar,
+    collectible: IMAGE.collectorVault,
     helicopter: IMAGE.helicopter,
     house: IMAGE.islandVilla,
-    submarine: IMAGE.submarine
+    motorcycle: luxury2026Image("gold-concept-motorcycle"),
+    rail: luxury2026Image("art-deco-private-railcar"),
+    submarine: IMAGE.submarine,
+    truck: luxury2026Image("desert-expedition-camper")
   };
 
   return imagesByCategory[category] ?? IMAGE.asset;

@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { LogoMark } from "@/components/LogoMark";
+import { NotificationBell } from "@/components/NotificationBell";
 import { formatCoins } from "@/lib/auction-ui";
 import type { User, Wallet } from "@/lib/auction-ui";
 
@@ -20,6 +22,9 @@ export function AppNav() {
   const [user, setUser] = useState<User | null>(null);
   const [wallet, setWallet] = useState<Wallet | null>(null);
   const [isBusy, setIsBusy] = useState(false);
+  const visibleNavItems = user?.isAdmin
+    ? [...navItems, { href: "/admin", label: "Admin" }]
+    : navItems;
 
   async function refreshSession() {
     const response = await fetch("/api/me");
@@ -62,58 +67,61 @@ export function AppNav() {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#10100f]/95 text-white shadow-lg shadow-black/10 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-[#d0a02e]/20 bg-[#10100f]/95 text-white shadow-2xl shadow-black/15 backdrop-blur">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-8">
-        <a href="/" className="flex items-center gap-3">
+        <Link href="/" className="group flex items-center gap-3">
           <LogoMark />
-          <span className="text-2xl font-semibold tracking-tight">Snipe</span>
-        </a>
+          <span className="text-2xl font-semibold tracking-tight transition group-hover:text-[#f2c85b]">
+            Snipe
+          </span>
+        </Link>
 
         <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
-          <nav className="flex w-full max-w-full gap-1 overflow-x-auto text-sm font-semibold text-white/70 md:w-auto">
-            {navItems.map((item) => {
+          <nav className="flex w-full max-w-full gap-1 overflow-x-auto rounded-full border border-white/10 bg-white/[0.045] p-1 text-sm font-semibold text-white/70 md:w-auto">
+            {visibleNavItems.map((item) => {
               const isActive = pathname === item.href;
 
               return (
-                <a
+                <Link
                   key={item.href}
                   href={item.href}
-                  className={`rounded-md px-3 py-2 transition ${
+                  className={`rounded-full px-3 py-2 transition ${
                     isActive
-                      ? "bg-white/12 text-white"
+                      ? "bg-[#d0a02e] text-[#151515] shadow-sm shadow-black/20"
                       : "hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   {item.label}
-                </a>
+                </Link>
               );
             })}
           </nav>
 
           {user && wallet ? (
             <div className="flex shrink-0 items-center gap-2 pl-0 md:pl-2">
-              <a
+              <NotificationBell isSignedIn={Boolean(user)} />
+              <Link
                 href="/wallet"
-                className="rounded-md border border-[#d0a02e]/45 bg-[#d0a02e]/15 px-3 py-2 text-sm font-bold text-[#f2c85b]"
+                className="rounded-full border border-[#d0a02e]/45 bg-[#d0a02e]/15 px-3 py-2 text-sm font-bold text-[#f2c85b]"
               >
                 {formatCoins(wallet.balance)} credits
-              </a>
+              </Link>
               <button
                 onClick={signOut}
                 disabled={isBusy}
-                className="rounded-md border border-white/15 px-3 py-2 text-sm font-bold text-white transition hover:bg-white/10 disabled:opacity-50"
+                className="rounded-full border border-white/15 px-3 py-2 text-sm font-bold text-white transition hover:bg-white/10 disabled:opacity-50"
               >
                 Sign out
               </button>
             </div>
           ) : (
             <div className="shrink-0 pl-0 md:pl-2">
-              <a
+              <Link
                 href="/signin"
-                className="inline-flex rounded-md bg-[#d0a02e] px-4 py-2 text-sm font-bold text-[#151515] transition hover:bg-[#e4b645]"
+                className="inline-flex rounded-full bg-[#d0a02e] px-4 py-2 text-sm font-bold text-[#151515] shadow-sm shadow-black/20 transition hover:bg-[#e4b645]"
               >
                 Sign in
-              </a>
+              </Link>
             </div>
           )}
         </div>

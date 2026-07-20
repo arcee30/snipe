@@ -14,7 +14,14 @@ export async function GET() {
 
   const [ledger, auctions] = await Promise.all([
     prisma.ledgerEntry.findMany({
-      where: { userId },
+      where: {
+        userId,
+        OR: [
+          { auctionId: null },
+          { auction: { market: "OVERWORLD" } },
+          { auction: { market: "UNDERWORLD", transferStatus: "CLEANED" } }
+        ]
+      },
       orderBy: { createdAt: "desc" },
       take: 40,
       include: {
@@ -31,6 +38,11 @@ export async function GET() {
           in: ["SETTLED", "EXPIRED"]
         },
         OR: [
+          { market: "OVERWORLD" },
+          { market: "UNDERWORLD", transferStatus: "CLEANED" }
+        ],
+        AND: [{
+          OR: [
           { sellerId: userId },
           { highestBidderId: userId },
           {
@@ -40,7 +52,8 @@ export async function GET() {
               }
             }
           }
-        ]
+          ]
+        }]
       },
       orderBy: { updatedAt: "desc" },
       include: {
@@ -70,6 +83,8 @@ export async function GET() {
         buyoutPrice: auction.buyoutPrice,
         highestBidderId: auction.highestBidderId,
         status: auction.status,
+        market: auction.market,
+        transferStatus: auction.transferStatus,
         endsAt: auction.endsAt,
         createdAt: auction.createdAt,
         outcome: isSeller

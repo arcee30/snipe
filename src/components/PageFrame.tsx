@@ -12,7 +12,7 @@ export function PageFrame({
       className={
         tone === "dark"
           ? "min-h-screen overflow-x-hidden bg-[#0f1110] text-white"
-          : "min-h-screen overflow-x-hidden bg-[#f6f2e9] text-[#151515]"
+          : "min-h-screen overflow-x-hidden bg-transparent text-[#151515]"
       }
     >
       <AppNav />

@@ -61,7 +61,7 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/88 to-black/55" />
         <div className="relative z-10 mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="max-w-2xl py-10">
-            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
+            <h1 className="display-serif text-6xl font-semibold leading-[0.9] md:text-8xl">
               Talk to the Snipe desk.
             </h1>
             <p className="mt-6 text-lg leading-8 text-white/72">
@@ -78,10 +78,10 @@ export default function ContactPage() {
 
           <form
             onSubmit={submitMessage}
-            className="rounded-xl border border-white/12 bg-white p-5 text-[#151515] shadow-2xl shadow-black/30 md:p-7"
+            className="premium-surface rounded-xl border border-white/12 p-5 text-[#151515] shadow-2xl shadow-black/30 md:p-7"
           >
             <div>
-              <h2 className="text-3xl font-semibold tracking-tight">
+              <h2 className="display-serif text-4xl font-semibold leading-none">
                 Send a message
               </h2>
               <p className="mt-2 text-sm leading-6 text-[#5f6f80]">
@@ -150,7 +150,7 @@ export default function ContactPage() {
 
             <button
               disabled={isBusy}
-              className="mt-5 w-full rounded-md bg-[#d0a02e] px-5 py-3 text-sm font-bold text-[#151515] transition hover:bg-[#e4b645] disabled:opacity-50"
+              className="interactive-lift mt-5 w-full rounded-full bg-[#d0a02e] px-5 py-3 text-sm font-bold text-[#151515] transition hover:bg-[#e4b645] disabled:opacity-50"
             >
               {isBusy ? "Sending..." : "Send message"}
             </button>
@@ -189,7 +189,7 @@ function ContactMetric({ value, label }: { value: string; label: string }) {
 
 function InfoCard({ title, body }: { title: string; body: string }) {
   return (
-    <article className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-black/10">
+    <article className="premium-surface interactive-lift rounded-xl p-5 ring-1 ring-black/10">
       <h2 className="text-xl font-semibold">{title}</h2>
       <p className="mt-3 text-sm leading-6 text-[#5f6f80]">{body}</p>
     </article>

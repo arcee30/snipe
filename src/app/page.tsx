@@ -39,7 +39,7 @@ export default function Home() {
         <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-7xl flex-col px-5 md:px-8">
           <div className="flex flex-1 items-center py-14">
             <div className="max-w-3xl">
-              <h1 className="max-w-full text-[2.8rem] font-semibold leading-[0.95] tracking-tight sm:text-5xl md:text-7xl">
+              <h1 className="display-serif max-w-full text-[3.1rem] font-semibold leading-[0.9] sm:text-6xl md:text-8xl">
                 Private auctions for assets worth watching.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-white/78 md:text-xl">
@@ -50,13 +50,13 @@ export default function Home() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={user ? "/auctions" : "/signin"}
-                  className="inline-flex items-center justify-center rounded-md bg-[#d0a02e] px-6 py-3 text-sm font-bold text-[#151515] shadow-lg shadow-black/20 transition hover:bg-[#e4b645]"
+                  className="interactive-lift inline-flex items-center justify-center rounded-full bg-[#d0a02e] px-6 py-3 text-sm font-bold text-[#151515] shadow-lg shadow-black/20 transition hover:bg-[#e4b645]"
                 >
                   {user ? "Open the market" : "Create your account"}
                 </a>
                 <a
                   href="#about"
-                  className="inline-flex items-center justify-center rounded-md border border-white/30 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10"
+                  className="interactive-lift inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10"
                 >
                   See how it works
                 </a>
@@ -75,7 +75,7 @@ export default function Home() {
       <section id="about" className="bg-[#f6f2e9] px-5 py-20 text-[#151515] md:px-8">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
-            <h2 className="max-w-2xl text-4xl font-semibold tracking-tight md:text-6xl">
+            <h2 className="display-serif gold-rule max-w-2xl text-5xl font-semibold leading-none md:text-7xl">
               A market built around timing and restraint.
             </h2>
             <p className="mt-5 max-w-xl text-lg leading-8 text-[#5f6f80]">
@@ -116,7 +116,7 @@ export default function Home() {
             </div>
             <a
               href="/auctions"
-              className="inline-flex w-fit rounded-md bg-[#151515] px-5 py-3 text-sm font-bold text-white"
+              className="interactive-lift inline-flex w-fit rounded-full bg-[#151515] px-5 py-3 text-sm font-bold text-white"
             >
               Open live auctions
             </a>
@@ -126,7 +126,7 @@ export default function Home() {
             {marketItems.map((item) => (
               <article
                 key={item.title}
-                className="overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/10"
+                className="premium-surface interactive-lift overflow-hidden rounded-xl ring-1 ring-black/10"
               >
                 <div className="aspect-[16/10] overflow-hidden bg-black">
                   <img
@@ -150,7 +150,7 @@ export default function Home() {
       <section className="bg-[#151515] px-5 py-16 md:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 border-y border-white/15 py-12 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="max-w-2xl text-4xl font-semibold tracking-tight">
+            <h2 className="display-serif max-w-2xl text-5xl font-semibold leading-none">
               Build a portfolio one decision at a time.
             </h2>
             <p className="mt-4 max-w-2xl leading-7 text-white/68">
@@ -160,7 +160,7 @@ export default function Home() {
           </div>
           <a
             href={user ? "/auctions" : "/signin"}
-            className="inline-flex shrink-0 items-center justify-center rounded-md bg-[#d0a02e] px-6 py-3 text-sm font-bold text-[#151515]"
+            className="interactive-lift inline-flex shrink-0 items-center justify-center rounded-full bg-[#d0a02e] px-6 py-3 text-sm font-bold text-[#151515]"
           >
             {user ? "Return to auctions" : "Create your account"}
           </a>
@@ -191,7 +191,7 @@ function ProofPoint({ value, label }: { value: string; label: string }) {
 
 function Feature({ title, body }: { title: string; body: string }) {
   return (
-    <div className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-black/10">
+    <div className="premium-surface interactive-lift rounded-xl p-5 ring-1 ring-black/10">
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-3 text-sm leading-6 text-[#5f6f80]">{body}</p>
     </div>

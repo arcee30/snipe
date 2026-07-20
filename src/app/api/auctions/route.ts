@@ -7,11 +7,18 @@ import {
   ensureBotAuctionPool,
   listActiveAuctions
 } from "@/services/auctions";
+import type { Market } from "@/services/auctions";
 
-export async function GET() {
+function marketFromRequest(request: Request): Market {
+  const value = new URL(request.url).searchParams.get("market");
+  return value === "UNDERWORLD" ? "UNDERWORLD" : "OVERWORLD";
+}
+
+export async function GET(request: Request) {
+  const market = marketFromRequest(request);
   await closeExpiredAuctions();
-  await ensureBotAuctionPool();
-  const auctions = await listActiveAuctions();
+  await ensureBotAuctionPool({ market });
+  const auctions = await listActiveAuctions(market);
   return NextResponse.json({ auctions });
 }
 
@@ -24,13 +31,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    const market = body.market === "UNDERWORLD" ? "UNDERWORLD" : "OVERWORLD";
     const auction = await createAuction(userId, {
       title: String(body.title ?? ""),
       category: String(body.category ?? "asset"),
       description: String(body.description ?? ""),
       imageUrl: String(body.imageUrl ?? ""),
       startingPrice: Number(body.startingPrice),
-      buyoutPrice: Number(body.buyoutPrice)
+      buyoutPrice: Number(body.buyoutPrice),
+      market
     });
 
     return NextResponse.json({ auction });

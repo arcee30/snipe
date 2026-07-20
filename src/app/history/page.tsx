@@ -38,7 +38,7 @@ export default function HistoryPage() {
     <PageFrame>
       <section className="mx-auto max-w-7xl px-5 py-10 md:px-8">
         <div className="border-b border-black/10 pb-6">
-          <h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
+          <h1 className="display-serif text-5xl font-semibold leading-none md:text-7xl">
             Auction history
           </h1>
           <p className="mt-3 max-w-2xl text-[#5f6f80]">
@@ -49,10 +49,10 @@ export default function HistoryPage() {
 
         <section className="mt-6">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-2xl font-semibold">Past auctions</h2>
+            <h2 className="display-serif text-4xl font-semibold leading-none">Past auctions</h2>
             <button
               onClick={refreshHistory}
-              className="rounded-md border border-black/15 bg-white px-4 py-2 text-sm font-bold"
+              className="interactive-lift rounded-full border border-black/15 bg-white px-4 py-2 text-sm font-bold"
             >
               Refresh
             </button>
@@ -67,7 +67,7 @@ export default function HistoryPage() {
               auctions.map((auction) => (
                 <article
                   key={auction.id}
-                  className="grid overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/10 sm:grid-cols-[180px_1fr]"
+                  className="premium-surface interactive-lift grid overflow-hidden rounded-xl ring-1 ring-black/10 sm:grid-cols-[180px_1fr]"
                 >
                   <div className="aspect-[16/10] bg-black sm:aspect-auto">
                     <img
@@ -125,8 +125,8 @@ export default function HistoryPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-lg bg-white p-5 shadow-sm ring-1 ring-black/10 md:p-6">
-          <h2 className="text-2xl font-semibold">Transactions</h2>
+        <section className="premium-surface mt-8 rounded-xl p-5 ring-1 ring-black/10 md:p-6">
+          <h2 className="display-serif text-4xl font-semibold leading-none">Transactions</h2>
           <div className="mt-4 grid gap-2">
             {ledger.length > 0 ? (
               ledger.map((entry) => (

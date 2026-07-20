@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getAdminUser } from "@/lib/admin";
 import { getSessionUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
@@ -24,12 +25,15 @@ export async function GET() {
     return NextResponse.json({ user: null, wallet: null, ledger: [] });
   }
 
+  const admin = await getAdminUser();
+
   return NextResponse.json({
     user: {
       id: user.id,
       username: user.username,
       email: user.email,
-      displayName: user.displayName
+      displayName: user.displayName,
+      isAdmin: Boolean(admin)
     },
     wallet: user.wallet,
     ledger: user.ledgerEntries

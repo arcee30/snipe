@@ -3,6 +3,8 @@ export function LogoMark({ className = "h-10 w-10" }: { className?: string }) {
     <svg
       aria-hidden="true"
       viewBox="0 0 64 64"
+      width="64"
+      height="64"
       className={`${className} shrink-0`}
       fill="none"
     >

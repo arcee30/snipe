@@ -16,6 +16,7 @@ model User {
   authProvider String   @default("username")
   googleId     String?  @unique
   isBot        Boolean  @default(false)
+  isAdmin      Boolean  @default(false)
   createdAt    DateTime @default(now())
 
   wallet          Wallet?
@@ -24,6 +25,10 @@ model User {
   winningAuctions Auction[]     @relation("HighestBidderAuctions")
   bids            Bid[]
   ledgerEntries   LedgerEntry[]
+  moderationFlags ModerationFlag[] @relation("ModerationFlagUser")
+  createdFlags    ModerationFlag[] @relation("ModerationFlagCreator")
+  notifications    Notification[]
+  dailyRewardClaims DailyRewardClaim[]
 }
 
 model Wallet {
@@ -61,12 +66,15 @@ model Item {
   category        String
   description     String
   imageUrl        String?
+  market          String   @default("OVERWORLD")
+  estimatedCleanValue Int?
   createdByUserId String
   isSeeded        Boolean  @default(false)
   createdAt       DateTime @default(now())
 
   createdBy User      @relation("UserItems", fields: [createdByUserId], references: [id], onDelete: Cascade)
   auctions  Auction[]
+  moderationFlags ModerationFlag[]
 }
 
 model Auction {
@@ -78,6 +86,11 @@ model Auction {
   buyoutPrice     Int
   highestBidderId String?
   status          String   @default("ACTIVE")
+  market          String   @default("OVERWORLD")
+  transferStatus  String   @default("NONE")
+  launderingFee   Int?
+  launderingStartedAt DateTime?
+  launderingCompletesAt DateTime?
   endsAt          DateTime
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -87,8 +100,13 @@ model Auction {
   highestBidder User?         @relation("HighestBidderAuctions", fields: [highestBidderId], references: [id], onDelete: SetNull)
   bids          Bid[]
   ledgerEntries LedgerEntry[]
+  moderationFlags ModerationFlag[]
+  notifications Notification[]
+  rewardClaims DailyRewardClaim[]
 
   @@index([status, endsAt])
+  @@index([market, status, endsAt])
+  @@index([highestBidderId, market, transferStatus])
   @@index([sellerId])
 }
 
@@ -104,4 +122,63 @@ model Bid {
 
   @@index([auctionId, createdAt])
   @@index([bidderId])
+}
+
+model ModerationFlag {
+  id          String   @id @default(cuid())
+  kind        String
+  status      String   @default("OPEN")
+  severity    String   @default("MEDIUM")
+  reason      String
+  notes       String?
+  auctionId   String?
+  itemId      String?
+  userId      String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
+
+  auction   Auction? @relation(fields: [auctionId], references: [id], onDelete: SetNull)
+  item      Item?    @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  user      User?    @relation("ModerationFlagUser", fields: [userId], references: [id], onDelete: SetNull)
+  createdBy User?    @relation("ModerationFlagCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([auctionId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  auctionId String?
+  type      String
+  title     String
+  body      String
+  href      String?
+  dedupeKey String?   @unique
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction Auction? @relation(fields: [auctionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, readAt, createdAt])
+  @@index([auctionId])
+}
+
+model DailyRewardClaim {
+  id             String   @id @default(cuid())
+  userId         String
+  claimDate      String
+  streakDay      Int
+  creditAmount   Int
+  assetAuctionId String?
+  createdAt      DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assetAuction Auction? @relation(fields: [assetAuctionId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, claimDate])
+  @@index([userId, createdAt])
 }

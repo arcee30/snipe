@@ -3,6 +3,7 @@ export type User = {
   username: string;
   email?: string | null;
   displayName?: string | null;
+  isAdmin?: boolean;
 };
 
 export type Wallet = {
@@ -31,6 +32,11 @@ export type Auction = {
   buyoutPrice: number;
   highestBidderId: string | null;
   status: string;
+  market?: "OVERWORLD" | "UNDERWORLD";
+  transferStatus?: "NONE" | "LAUNDERING" | "CLEANED";
+  launderingFee?: number | null;
+  launderingStartedAt?: string | null;
+  launderingCompletesAt?: string | null;
   endsAt: string;
   createdAt: string;
   item: {
@@ -38,6 +44,8 @@ export type Auction = {
     category: string;
     description: string;
     imageUrl?: string | null;
+    market?: "OVERWORLD" | "UNDERWORLD";
+    estimatedCleanValue?: number | null;
   };
   seller: User;
   highestBidder: User | null;
@@ -62,6 +70,36 @@ export type PortfolioLeader = {
   totalWorth: number;
   assetCount: number;
   isCurrentUser?: boolean;
+};
+
+export type NotificationItem = {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  href?: string | null;
+  auctionId?: string | null;
+  readAt?: string | null;
+  createdAt: string;
+};
+
+export type DailyRewardState = {
+  claimedToday: boolean;
+  nextStreakDay: number;
+  lastClaimDate: string | null;
+  schedule: Array<{
+    day: number;
+    credits: number;
+    asset: {
+      title: string;
+      category: string;
+      description: string;
+      imageUrl: string;
+      estimatedValue: number;
+    } | null;
+    isClaimedInCurrentStreak: boolean;
+    isNext: boolean;
+  }>;
 };
 
 export function formatCoins(value: number) {
@@ -131,9 +169,13 @@ export function estimateValue(auction: Auction) {
 export function ledgerTypeLabel(type: string) {
   const labels: Record<string, string> = {
     ACCOUNT_CREDIT_ADJUSTMENT: "Account credit",
+    ADMIN_AUCTION_REFUND: "Admin refund",
+    ADMIN_WALLET_ADJUSTMENT: "Admin adjustment",
     BID_HOLD: "Bid reserve",
     BUYOUT_PURCHASE: "Buyout purchase",
+    DAILY_REWARD_CREDIT: "Daily reward",
     FREE_CREDIT_TOP_UP: "Account credit",
+    LAUNDERING_FEE: "Clean-up fee",
     OUTBID_REFUND: "Outbid release",
     SELLER_PROCEEDS: "Seller proceeds",
     STARTING_BONUS: "Opening balance"
