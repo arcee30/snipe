@@ -1,6 +1,8 @@
 # Snipe
 
-Snipe is a full-stack luxury auction game built with Next.js, Prisma, and TypeScript. Users can browse limited-time auctions, bid or buy out high-value lots, manage a credit wallet, collect assets in a portfolio, review transaction history, and receive in-app notifications.
+Snipe is an online auction app for luxury assets.
+
+It is a full-stack luxury auction game built with Next.js, Prisma, and TypeScript. Users can browse limited-time auctions, bid or buy out high-value lots, manage a credit wallet, collect assets in a portfolio, review transaction history, and receive in-app notifications.
 
 ## Features
 
